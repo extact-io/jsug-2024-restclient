@@ -42,37 +42,37 @@ public class BookController {
 
     @GetMapping("/{id}")
     public Book get(@PathVariable int id) {
-        return provider.getObject().get(id).orElse(null);
+        return repository().get(id).orElse(null);
     }
 
     @GetMapping
     public List<Book> getAll() {
-        return provider.getObject().findAll();
+        return repository().findAll();
     }
 
     @GetMapping("/search")
     public List<Book> findByCondition(@RequestParam Map<String, String> queryParams) {
-        return provider.getObject().findByCondition(queryParams);
+        return repository().findByCondition(queryParams);
     }
 
     @GetMapping("/author")
     public List<Book> findByAuthorStartingWith(@NotBlank @Size(max= 10) @RequestParam("prefix") String prefix) {
-        return provider.getObject().findByAuthorStartingWith(prefix);
+        return repository().findByAuthorStartingWith(prefix);
     }
 
     @PostMapping
     public Book add(@RequestBody @Validated Book book) throws DuplicateException {
-        return provider.getObject().save(book);
+        return repository().save(book);
     }
 
     @PutMapping
     public Book update(@RequestBody @Validated(Update.class) Book book) throws NotFoundException {
-        return provider.getObject().save(book);
+        return repository().save(book);
     }
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable int id) throws NotFoundException {
-        provider.getObject().remove(id);
+        repository().remove(id);
     }
 
     @PostMapping("/upload")
@@ -98,5 +98,9 @@ public class BookController {
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
 
         return ResponseEntity.ok().headers(headers).body(resource);
+    }
+
+    private BookRepository repository() {
+        return provider.getObject();
     }
 }
