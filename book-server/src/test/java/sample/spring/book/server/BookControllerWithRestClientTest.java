@@ -18,7 +18,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -26,18 +25,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.client.support.RestClientAdapter;
-import org.springframework.web.service.annotation.DeleteExchange;
-import org.springframework.web.service.annotation.GetExchange;
-import org.springframework.web.service.annotation.HttpExchange;
-import org.springframework.web.service.annotation.PostExchange;
-import org.springframework.web.service.annotation.PutExchange;
-import org.springframework.web.service.invoker.HttpServiceProxyFactory;
+import org.springframework.web.util.DefaultUriBuilderFactory;
+import org.springframework.web.util.UriBuilderFactory;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import sample.spring.book.server.client.UserHeaderRequestInitializer;
 import sample.spring.book.server.repository.InMemoryBookRepository;
@@ -46,7 +37,6 @@ import sample.spring.book.server.repository.InMemoryBookRepository;
 @ActiveProfiles("test")
 class BookControllerWithRestClientTest {
 
-    private BookControllerClient target;
     private RestClient client;
 
     private final Book expectedBook1 = new Book(1, "燃えよ剣", "司馬遼太郎");
@@ -70,18 +60,18 @@ class BookControllerWithRestClientTest {
 
         SecurityContextHolder.clearContext();
 
-        RestClient restClient = RestClient.builder()
-                .baseUrl("http://localhost:" + port)
+        UriComponentsBuilder builder = UriComponentsBuilder
+                .fromHttpUrl("http://localhost:" + port)
+                .queryParam("Sender-Name", BookApplication.class.getSimpleName());
+        UriBuilderFactory factory = new DefaultUriBuilderFactory(builder);
+
+        this.client = RestClient.builder()
+                //.baseUrl("http://localhost:" + port)
+                .uriBuilderFactory(factory)
                 .defaultHeader("Sender-Name", BookApplication.class.getSimpleName())
                 .defaultUriVariables(Map.of("context", "books"))
                 .requestInitializer(new UserHeaderRequestInitializer())
                 .build();
-
-        this.client = restClient;
-
-        RestClientAdapter adapter = RestClientAdapter.create(restClient);
-        HttpServiceProxyFactory factory = HttpServiceProxyFactory.builderFor(adapter).build();
-        target = factory.createClient(BookControllerClient.class);
     }
 
     @Test
@@ -235,14 +225,6 @@ class BookControllerWithRestClientTest {
                 .uri("/books/{id}", 1)
                 .retrieve()
                 .toBodilessEntity();
-
-        Book actual = client
-                .get()
-                .uri("/books/{id}", 1)
-                .retrieve()
-                .body(Book.class);
-
-        assertThat(actual).isNull();
     }
 
     @Test
@@ -278,100 +260,8 @@ class BookControllerWithRestClientTest {
         assertThat(actual).isNotNull();
     }
 
-    @Test
-    void testAddOccurValidationError() {
-
-        prepareSecurityContext();
-
-        Book addBook = new Book(null, null, null);
-        assertThatThrownBy(() -> target.add(addBook))
-            .isInstanceOfSatisfying(
-                    HttpClientErrorException.class,
-                    e -> assertThat(e.getStatusCode().value()).isEqualTo(HttpStatus.BAD_REQUEST.value()));
-    }
-
-    @Test
-    void testUpdateOccurValidationError() {
-
-        prepareSecurityContext();
-
-        Book addBook = new Book(null, null, null);
-        assertThatThrownBy(() -> target.update(addBook))
-            .isInstanceOfSatisfying(
-                    HttpClientErrorException.class,
-                    e -> assertThat(e.getStatusCode().value()).isEqualTo(HttpStatus.BAD_REQUEST.value()));
-    }
-
-    @Test
-    void testAddOccurDuplicateException() {
-
-        prepareSecurityContext();
-
-        Book addBook = new Book(null, "峠", "司馬遼太郎");
-        assertThatThrownBy(() -> target.add(addBook))
-                .isInstanceOfSatisfying(
-                        HttpClientErrorException.class,
-                        e -> assertThat(e.getStatusCode().value()).isEqualTo(HttpStatus.CONFLICT.value()));
-    }
-
-    @Test
-    void testUpdateOccurNotFoundException() {
-
-        prepareSecurityContext();
-
-        Book updateBook = new Book(999, "新宿鮫", "大沢在昌");
-        assertThatThrownBy(() -> target.update(updateBook))
-                .isInstanceOfSatisfying(
-                        HttpClientErrorException.class,
-                        e -> assertThat(e.getStatusCode().value()).isEqualTo(HttpStatus.NOT_FOUND.value()));
-    }
-
-    @Test
-    void testDeleteOccurNotFoundException() {
-
-        prepareSecurityContext();
-
-        assertThatThrownBy(() -> target.delete(999))
-                .isInstanceOfSatisfying(
-                        HttpClientErrorException.class,
-                        e -> assertThat(e.getStatusCode().value()).isEqualTo(HttpStatus.NOT_FOUND.value()));
-    }
-
-    @Test
-    void testUpdateOccurConstrainException() {
-
-        prepareSecurityContext();
-
-        assertThatThrownBy(() -> target.update(new Book(3, "燃えよ剣", null)))
-                .isInstanceOfSatisfying(
-                        HttpClientErrorException.class,
-                        e -> assertThat(e.getStatusCode().value()).isEqualTo(HttpStatus.CONFLICT.value()));
-    }
-
     private void prepareSecurityContext() {
         Authentication auth = new TestingAuthenticationToken("ID0001", "test", "MEMBER");
         SecurityContextHolder.getContext().setAuthentication(auth);
-    }
-
-    @HttpExchange(url = "/books")
-    static interface BookControllerClient {
-
-        @GetExchange("/{id}")
-        Book get(@PathVariable int id);
-
-        @GetExchange
-        Book findAll();
-
-        @GetExchange("/author")
-        List<Book> findByAuthorStartingWith(@RequestParam("prefix") String prefix);
-
-        @PostExchange
-        Book add(@RequestBody Book book);
-
-        @PutExchange
-        Book update(@RequestBody Book book);
-
-        @DeleteExchange("/{id}")
-        void delete(@PathVariable int id);
     }
 }

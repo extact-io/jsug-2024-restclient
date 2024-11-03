@@ -7,6 +7,7 @@ import java.util.Map;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ContentDisposition;
@@ -37,42 +38,41 @@ import sample.spring.book.server.exception.NotFoundException;
 @RequiredArgsConstructor
 public class BookController {
 
-    private final BookRepository repository;
+    private final ObjectProvider<BookRepository> provider;
 
     @GetMapping("/{id}")
     public Book get(@PathVariable int id) {
-        return repository.get(id).orElse(null);
+        return provider.getObject().get(id).orElse(null);
     }
 
     @GetMapping
     public List<Book> getAll() {
-        return repository.findAll();
+        return provider.getObject().findAll();
     }
 
     @GetMapping("/search")
     public List<Book> findByCondition(@RequestParam Map<String, String> queryParams) {
-        return repository.findByCondition(queryParams);
+        return provider.getObject().findByCondition(queryParams);
     }
 
     @GetMapping("/author")
     public List<Book> findByAuthorStartingWith(@NotBlank @Size(max= 10) @RequestParam("prefix") String prefix) {
-        return repository.findByAuthorStartingWith(prefix);
+        return provider.getObject().findByAuthorStartingWith(prefix);
     }
 
     @PostMapping
     public Book add(@RequestBody @Validated Book book) throws DuplicateException {
-        return repository.save(book);
+        return provider.getObject().save(book);
     }
 
     @PutMapping
     public Book update(@RequestBody @Validated(Update.class) Book book) throws NotFoundException {
-        var ret = repository.save(book);
-        return ret;
+        return provider.getObject().save(book);
     }
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable int id) throws NotFoundException {
-        repository.remove(id);
+        provider.getObject().remove(id);
     }
 
     @PostMapping("/upload")
