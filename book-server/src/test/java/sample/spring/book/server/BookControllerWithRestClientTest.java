@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -38,13 +39,14 @@ import sample.spring.book.server.repository.InMemoryBookRepository;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-class BookControllerTest {
+class BookControllerWithRestClientTest {
 
     private BookControllerClient target;
     private RestClient client;
 
     private final Book expectedBook1 = new Book(1, "燃えよ剣", "司馬遼太郎");
     private final Book expectedBook2 = new Book(2, "峠", "司馬遼太郎");
+    private final Book expectedBook3 = new Book(3, "ノルウェーの森", "村上春樹");
 
     @Configuration(proxyBeanMethods = false)
     @Import(BookApplication.class)
@@ -80,35 +82,91 @@ class BookControllerTest {
     @Test
     void testGet() {
 
-        Book actual = target.get(1);
-        assertThat(actual).isEqualTo(expectedBook1);
-
-        actual = target.get(999);
-        assertThat(actual).isNull();
-    }
-
-    @Test
-    void testGet2() {
-
         Book actual = client
                 .get()
                 .uri("/books/{id}", 1)
                 .retrieve()
                 .body(Book.class);
+
         assertThat(actual).isEqualTo(expectedBook1);
 
-        actual = target.get(999);
+        actual = client
+                .get()
+                .uri("/books/{id}", 999)
+                .retrieve()
+                .body(Book.class);
+
         assertThat(actual).isNull();
+    }
+
+    @Test
+    void testGetAll() {
+
+        List<Book> actual = client
+                .get()
+                .uri("/books")
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<Book>>(){});
+
+        assertThat(actual).containsExactly(expectedBook1, expectedBook2, expectedBook3);
     }
 
     @Test
     void testFindByAuthorStartingWith() {
 
-        List<Book> actual = target.findByAuthorStartingWith("司馬");
+        List<Book> actual = client
+                .get()
+                .uri("/books/author", builder -> builder.queryParam("prefix", "司馬").build())
+                .retrieve()
+                .body(new ParameterizedTypeReference<>(){});
+
         assertThat(actual).containsExactly(expectedBook1, expectedBook2);
 
-        actual = target.findByAuthorStartingWith("unknown");
+        actual = client
+                .get()
+                .uri("/books/author", builder -> builder.queryParam("prefix", "unknown").build())
+                .retrieve()
+                .body(new ParameterizedTypeReference<>(){});
+
         assertThat(actual).isEmpty();
+    }
+
+    @Test
+    void testAdd() {
+
+        prepareSecurityContext();
+
+        Book addBook = new Book(null, "新宿鮫", "大沢在昌");
+
+        Book actual = client
+                .post()
+                .uri("/books")
+                .body(addBook)
+                .retrieve()
+                .body(Book.class);
+
+        assertThat(actual.getId()).isEqualTo(4);
+    }
+
+    @Test
+    void testUpdate() {
+
+        prepareSecurityContext();
+
+        Book addBook = new Book(null, "新宿鮫", "大沢在昌");
+        Book actual = target.add(addBook);
+        assertThat(actual.getId()).isEqualTo(4);
+
+        Book updateBook = actual.copy();
+        updateBook.setTitle("update-title");
+        updateBook.setAuthor("update-author");
+
+        actual = target.update(updateBook);
+        assertThat(actual.getTitle()).isEqualTo("update-title");
+        assertThat(actual.getAuthor()).isEqualTo("update-author");
+
+        target.delete(actual.getId());
+        assertThat(target.get(actual.getId())).isNull();
     }
 
     @Test
@@ -212,6 +270,9 @@ class BookControllerTest {
 
         @GetExchange("/{id}")
         Book get(@PathVariable int id);
+
+        @GetExchange
+        Book findAll();
 
         @GetExchange("/author")
         List<Book> findByAuthorStartingWith(@RequestParam("prefix") String prefix);

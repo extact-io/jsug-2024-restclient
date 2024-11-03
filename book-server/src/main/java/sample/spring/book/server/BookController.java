@@ -1,6 +1,7 @@
 package sample.spring.book.server;
 
 import java.util.List;
+import java.util.Map;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -33,6 +34,16 @@ public class BookController {
     @GetMapping("/{id}")
     public Book get(@PathVariable int id) {
         return repository.get(id).orElse(null);
+    }
+
+    @GetMapping
+    public List<Book> getAll() {
+        return repository.findAll();
+    }
+
+    @GetMapping("/search")
+    public List<Book> findByCondition(@RequestParam Map<String, String> queryParams) {
+        return repository.findByCondition(queryParams);
     }
 
     @GetMapping("/author")

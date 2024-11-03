@@ -33,6 +33,13 @@ public class InMemoryBookRepository implements BookRepository {
     }
 
     @Override
+    public List<Book> findAll() {
+        return bookMap.values().stream()
+                .sorted((book1, book2) -> Integer.compare(book1.getId(), book2.getId()))
+                .toList();
+    }
+
+    @Override
     public List<Book> findByAuthorStartingWith(String prefix) {
         return bookMap.values().stream()
                 .filter(book -> book.getAuthor().startsWith(prefix))
@@ -73,7 +80,7 @@ public class InMemoryBookRepository implements BookRepository {
         bookMap.remove(id);
     }
 
-    public Optional<Book> findByTitle(String title) {
+    private Optional<Book> findByTitle(String title) {
         return bookMap.values().stream()
                 .filter(book -> book.getTitle().equals(title))
                 .findFirst();
