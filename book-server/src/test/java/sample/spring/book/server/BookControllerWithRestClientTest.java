@@ -16,11 +16,16 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -112,6 +117,58 @@ class BookControllerWithRestClientTest {
     }
 
     @Test
+    void testFindByCondition() {
+
+        // 全項目一致検索
+        List<Book> actual = client
+                .get()
+                .uri("/books/search", builder -> builder
+                        .queryParam("id", "2")
+                        .queryParam("title", "峠")
+                        .queryParam("author", "司馬遼太郎")
+                        .build())
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<Book>>(){});
+
+        assertThat(actual).containsExactly(expectedBook2);
+
+        // 著者名検索
+        actual = client
+                .get()
+                .uri("/books/search", builder -> builder
+                        .queryParam("author", "司馬遼太郎")
+                        .build())
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<Book>>(){});
+
+        assertThat(actual).containsExactly(expectedBook1, expectedBook2);
+
+        // idと著者名で検索
+        actual = client
+                .get()
+                .uri("/books/search", builder -> builder
+                        .queryParam("id", "1")
+                        .queryParam("author", "司馬遼太郎")
+                        .build())
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<Book>>(){});
+
+        assertThat(actual).containsExactly(expectedBook1);
+
+        // 該当なし（一部項目不一致）
+        actual = client
+                .get()
+                .uri("/books/search", builder -> builder
+                        .queryParam("id", "9")
+                        .queryParam("author", "司馬遼太郎")
+                        .build())
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<Book>>(){});
+
+        assertThat(actual).isEmpty();
+    }
+
+    @Test
     void testFindByAuthorStartingWith() {
 
         List<Book> actual = client
@@ -153,41 +210,72 @@ class BookControllerWithRestClientTest {
 
         prepareSecurityContext();
 
-        Book addBook = new Book(null, "新宿鮫", "大沢在昌");
-        Book actual = target.add(addBook);
-        assertThat(actual.getId()).isEqualTo(4);
-
-        Book updateBook = actual.copy();
+        Book updateBook = expectedBook1.copy();
         updateBook.setTitle("update-title");
         updateBook.setAuthor("update-author");
 
-        actual = target.update(updateBook);
+        Book actual = client
+                .put()
+                .uri("/books")
+                .body(updateBook)
+                .retrieve()
+                .body(Book.class);
+
+        assertThat(actual.getId()).isEqualTo(1);
         assertThat(actual.getTitle()).isEqualTo("update-title");
         assertThat(actual.getAuthor()).isEqualTo("update-author");
-
-        target.delete(actual.getId());
-        assertThat(target.get(actual.getId())).isNull();
     }
 
     @Test
-    void testAddToUpdateToDelete() {
+    void testDelete() {
 
         prepareSecurityContext();
 
-        Book addBook = new Book(null, "新宿鮫", "大沢在昌");
-        Book actual = target.add(addBook);
-        assertThat(actual.getId()).isEqualTo(4);
+        client.delete()
+                .uri("/books/{id}", 1)
+                .retrieve()
+                .toBodilessEntity();
 
-        Book updateBook = actual.copy();
-        updateBook.setTitle("update-title");
-        updateBook.setAuthor("update-author");
+        Book actual = client
+                .get()
+                .uri("/books/{id}", 1)
+                .retrieve()
+                .body(Book.class);
 
-        actual = target.update(updateBook);
-        assertThat(actual.getTitle()).isEqualTo("update-title");
-        assertThat(actual.getAuthor()).isEqualTo("update-author");
+        assertThat(actual).isNull();
+    }
 
-        target.delete(actual.getId());
-        assertThat(target.get(actual.getId())).isNull();
+    @Test
+    void testUpload() {
+
+        prepareSecurityContext();
+
+        MultiValueMap<String, Object> parts = new LinkedMultiValueMap<>();
+        parts.add("file", new ClassPathResource("mz-tech-logo-small.png"));
+
+        String actual = client
+                .post()
+                .uri("/books/upload")
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .body(parts)
+                .retrieve()
+                .body(String.class);
+
+        assertThat(actual).isEqualTo("mz-tech-logo-small.png");
+    }
+
+    @Test
+    void testDownload() {
+
+        prepareSecurityContext();
+
+        Resource actual = client
+                .get()
+                .uri("/books/files/{filename}", "mz-tech-logo-small.png")
+                .retrieve()
+                .body(Resource.class);
+
+        assertThat(actual).isNotNull();
     }
 
     @Test

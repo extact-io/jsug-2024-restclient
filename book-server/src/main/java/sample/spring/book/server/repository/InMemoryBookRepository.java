@@ -2,6 +2,7 @@ package sample.spring.book.server.repository;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -38,6 +39,22 @@ public class InMemoryBookRepository implements BookRepository {
                 .sorted((book1, book2) -> Integer.compare(book1.getId(), book2.getId()))
                 .toList();
     }
+
+    // @formatter:off
+    @Override
+    public List<Book> findByCondition(Map<String, String> condition) {
+        return bookMap.values().stream()
+                .filter(book ->
+                    condition.entrySet().stream().allMatch(entry ->
+                        switch (entry.getKey()) {
+                            case "id" -> Objects.equals(entry.getValue(), String.valueOf(book.getId()));
+                            case "title" -> Objects.equals(entry.getValue(), book.getTitle());
+                            case "author" -> Objects.equals(entry.getValue(), book.getAuthor());
+                            default -> true;
+                }))
+                .toList();
+    }
+    // @formatter:on
 
     @Override
     public List<Book> findByAuthorStartingWith(String prefix) {
@@ -85,5 +102,4 @@ public class InMemoryBookRepository implements BookRepository {
                 .filter(book -> book.getTitle().equals(title))
                 .findFirst();
     }
-
 }
