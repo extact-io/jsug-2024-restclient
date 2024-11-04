@@ -5,12 +5,14 @@ import java.util.List;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 
 import sample.spring.book.domain.BookClient;
 import sample.spring.book.domain.BookClientTest;
+import sample.spring.book.infrastructure.component.CustomMessageConveterFactory;
 import sample.spring.book.infrastructure.component.PropagateUserContextInitializer;
 
 @SpringBootTest(classes = BookClientTest.TestConfig.class, webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -27,9 +29,9 @@ public class BookClientRestTemplateAdapterTest extends BookClientTest {
         restTemplate.setUriTemplateHandler(uriFactory);
         restTemplate.setClientHttpRequestInitializers(List.of(new PropagateUserContextInitializer()));
 
+        MappingJackson2HttpMessageConverter converter = new CustomMessageConveterFactory().create("yyyy/MM/dd");
         List<HttpMessageConverter<?>> messageConverters = restTemplate.getMessageConverters();
-        messageConverters.addFirst(TestUtils.customJsonMessageConveter());
-
+        messageConverters.addFirst(converter);
         restTemplate.setMessageConverters(messageConverters);
 
         return new BookClientRestTemplateAdapter(restTemplate);

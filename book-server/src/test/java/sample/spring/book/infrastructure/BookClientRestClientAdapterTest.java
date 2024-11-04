@@ -26,7 +26,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 import sample.spring.book.domain.BookClient;
 import sample.spring.book.domain.BookClientTest;
 import sample.spring.book.infrastructure.component.BookResponseErrorHandler;
-import sample.spring.book.infrastructure.component.LoggingInterceptor;
+import sample.spring.book.infrastructure.component.CustomMessageConveterFactory;
+import sample.spring.book.infrastructure.component.LoggingClientHttpRequestFactory;
 import sample.spring.book.infrastructure.component.PropagateUserContextInitializer;
 import sample.spring.book.stub.BookApplication;
 
@@ -38,9 +39,10 @@ public class BookClientRestClientAdapterTest extends BookClientTest {
     protected BookClient retrieveTestInstanceBeforeEach(int port) {
 
         //ClientHttpRequestFactory requestFactory = simpleCreateFactory();
-        ClientHttpRequestFactory requestFactory = customHttpClientCreateFactory();
+        //ClientHttpRequestFactory requestFactory = createCustomHttpClientFactory();
+        ClientHttpRequestFactory requestFactory = createLogginFactory();
 
-        MappingJackson2HttpMessageConverter converter = TestUtils.customJsonMessageConveter();
+        MappingJackson2HttpMessageConverter converter = new CustomMessageConveterFactory().create("yyyy/MM/dd");
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder
                 .fromHttpUrl("http://localhost:" + port)
@@ -56,13 +58,13 @@ public class BookClientRestClientAdapterTest extends BookClientTest {
                 .defaultUriVariables(Map.of("context", "books"))
                 .defaultStatusHandler(new BookResponseErrorHandler())
                 .requestInitializer(new PropagateUserContextInitializer())
-                .requestInterceptor(new LoggingInterceptor())
+                //.requestInterceptor(new LoggingInterceptor())
                 .build();
 
         return new BookClientRestClientAdapter(restClient);
     }
 
-    private ClientHttpRequestFactory simpleCreateFactory() {
+    private ClientHttpRequestFactory createSimpleFactory() {
 
         Duration connectTimeout = Duration.ofSeconds(5);
         ClientHttpRequestFactorySettings settings = new ClientHttpRequestFactorySettings(
@@ -75,7 +77,7 @@ public class BookClientRestClientAdapterTest extends BookClientTest {
                 settings);
     }
 
-    private ClientHttpRequestFactory customHttpClientCreateFactory() {
+    private ClientHttpRequestFactory createCustomHttpClientFactory() {
 
         ConnectionConfig connectionConfig = ConnectionConfig.custom()
                 .setConnectTimeout(Timeout.ofSeconds(5))   // 接続タイムアウト(default:3sec)
@@ -95,5 +97,10 @@ public class BookClientRestClientAdapterTest extends BookClientTest {
                 .build();
 
         return new HttpComponentsClientHttpRequestFactory(httpClient);
+    }
+
+    private ClientHttpRequestFactory createLogginFactory() {
+        ClientHttpRequestFactory orignal = new HttpComponentsClientHttpRequestFactory();
+        return new LoggingClientHttpRequestFactory(orignal);
     }
 }

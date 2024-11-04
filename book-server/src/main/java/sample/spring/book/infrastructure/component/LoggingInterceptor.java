@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import org.springframework.http.HttpRequest;
+import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
@@ -31,28 +32,34 @@ public class LoggingInterceptor implements ClientHttpRequestInterceptor {
 
     private void logRequestDetails(HttpRequest request, byte[] body) {
 
+        log.info("Request ================================================================");
         log.info("Request URI: " + request.getURI());
         log.info("Request Method: " + request.getMethod());
         log.info("Request Headers: " + request.getHeaders());
 
         // リクエストボディのログ出力（必要な場合）
-        if (body.length > 0) {
+        if (request.getHeaders().getContentType().equals(MediaType.MULTIPART_FORM_DATA) && body.length > 0) {
             log.info("Request Body: " + new String(body, StandardCharsets.UTF_8));
         }
+        log.info("Request ================================================================");
     }
 
     private void logResponseDetails(ClientHttpResponse response) throws IOException {
 
+        log.info("Response ================================================================");
         log.info("Response Status Code: " + response.getStatusCode());
         log.info("Response Headers: " + response.getHeaders());
+        log.info("Response ================================================================");
 
-        // response.getBody()をするとInputStreamを読み切ってしまいJSON→Objectするデータが取れなくなる
-        // なので、responseのボディをログに出したい場合は読み切ったStreamを戻す必要がある
+        // response.getBody()をするとInputStreamを読み切ってしまいJSON→Objectするデータが取れ
+        // なくなるためresponseのボディをログに出したい場合は読み切ったStreamを戻す必要あり、
+        // 実装難易度が高いので省略
 
-        // レスポンスボディのログ出力（必要な場合）
-        //String responseBody = new String(response.getBody().readAllBytes(), StandardCharsets.UTF_8);
-        //if (!responseBody.isEmpty()) {
-        //    log.info("Response Body: " + responseBody);
-        //}
+        /* ↓↓↓↓はダメな実装例
+        String responseBody = new String(response.getBody().readAllBytes(), StandardCharsets.UTF_8);
+        if (!responseBody.isEmpty()) {
+            log.info("Response Body: " + responseBody);
+        }
+        */
     }
 }
