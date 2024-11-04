@@ -1,18 +1,37 @@
 package sample.spring.book.infrastructure;
 
+import java.time.Duration;
+import java.time.LocalDate;
 import java.util.Map;
 
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.core5.util.Timeout;
+import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.web.client.ClientHttpRequestFactories;
+import org.springframework.boot.web.client.ClientHttpRequestFactorySettings;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import org.springframework.web.util.UriBuilderFactory;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+
 import sample.spring.book.domain.BookClient;
 import sample.spring.book.domain.BookClientTest;
 import sample.spring.book.infrastructure.component.BookResponseErrorHandler;
+import sample.spring.book.infrastructure.component.CustomLocalDateDeserializer;
+import sample.spring.book.infrastructure.component.CustomLocalDateSerializer;
 import sample.spring.book.infrastructure.component.PropagateUserContextInitializer;
 import sample.spring.book.stub.BookApplication;
 
@@ -23,20 +42,75 @@ public class BookClientRestClientAdapterTest extends BookClientTest {
     @Override
     protected BookClient retrieveTestInstanceBeforeEach(int port) {
 
-        UriComponentsBuilder builder = UriComponentsBuilder
+        //ClientHttpRequestFactory requestFactory = simpleCreateFactory();
+        ClientHttpRequestFactory requestFactory = customHttpClientCreateFactory();
+
+        MappingJackson2HttpMessageConverter converter = customJsonMessageConveter();
+
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder
                 .fromHttpUrl("http://localhost:" + port)
                 .queryParam("Sender-Name", BookApplication.class.getSimpleName());
-        UriBuilderFactory factory = new DefaultUriBuilderFactory(builder);
+        UriBuilderFactory uriFactory = new DefaultUriBuilderFactory(uriBuilder);
 
         RestClient restClient = RestClient.builder()
+                .requestFactory(requestFactory)
                 //.baseUrl("http://localhost:" + port)
-                .uriBuilderFactory(factory)
-                .defaultHeader("Sender-Name", BookApplication.class.getSimpleName())
+                .uriBuilderFactory(uriFactory)
+                .messageConverters(converters -> converters.add(0, converter))
+                .defaultHeader("Sender-Name", BookClientRestClientAdapter.class.getSimpleName())
                 .defaultUriVariables(Map.of("context", "books"))
                 .defaultStatusHandler(new BookResponseErrorHandler())
                 .requestInitializer(new PropagateUserContextInitializer())
                 .build();
 
         return new BookClientRestClientAdapter(restClient);
+    }
+
+    private ClientHttpRequestFactory simpleCreateFactory() {
+
+        Duration connectTimeout = Duration.ofSeconds(5);
+        ClientHttpRequestFactorySettings settings = new ClientHttpRequestFactorySettings(
+                connectTimeout,
+                null,
+                (SslBundle) null);
+
+        return ClientHttpRequestFactories.get(
+                HttpComponentsClientHttpRequestFactory::new,
+                settings);
+    }
+
+    private ClientHttpRequestFactory customHttpClientCreateFactory() {
+
+        ConnectionConfig connectionConfig = ConnectionConfig.custom()
+                .setConnectTimeout(Timeout.ofSeconds(5))   // 接続タイムアウト(default:3sec)
+                .build();
+
+        PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+        connectionManager.setDefaultConnectionConfig(connectionConfig);
+
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setResponseTimeout(Timeout.ofSeconds(30)) // 読み取りタイムアウト(default:none)
+                .setMaxRedirects(3)                         // 最大リダイレクト回数(default:50)
+                .build();
+
+        CloseableHttpClient httpClient = HttpClients.custom()
+                .setConnectionManager(connectionManager)
+                .setDefaultRequestConfig(requestConfig)
+                .build();
+
+        return new HttpComponentsClientHttpRequestFactory(httpClient);
+    }
+
+    private MappingJackson2HttpMessageConverter customJsonMessageConveter() {
+
+        String localDatePattern = "yyyy/MM/dd";
+
+        ObjectMapper mapper = new ObjectMapper();
+        SimpleModule module = new SimpleModule();
+        module.addSerializer(LocalDate.class, new CustomLocalDateSerializer(localDatePattern));
+        module.addDeserializer(LocalDate.class, new CustomLocalDateDeserializer(localDatePattern));
+        mapper.registerModule(module);
+
+        return new MappingJackson2HttpMessageConverter(mapper);
     }
 }
