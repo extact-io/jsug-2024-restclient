@@ -39,43 +39,43 @@ import sample.spring.book.stub.exception.NotFoundServerException;
 @RequiredArgsConstructor
 public class BookController {
 
-    private final ObjectProvider<BookRepository> provider;
+    private final ObjectProvider<BookRepository> repository; // for prototype
 
     @GetMapping("/{id}")
     public BookServerModel get(@PathVariable int id) {
-        return repository().get(id).orElse(null);
+        return repository.getObject().get(id).orElse(null);
     }
 
     @GetMapping
     public List<BookServerModel> getAll() {
-        return repository().findAll();
+        return repository.getObject().findAll();
     }
 
     @GetMapping("/search")
     public List<BookServerModel> findByCondition(@RequestParam Map<String, String> queryParams) {
-        return repository().findByCondition(queryParams);
+        return repository.getObject().findByCondition(queryParams);
     }
 
     @GetMapping("/author")
     public List<BookServerModel> findByAuthorStartingWith(
             @NotBlank @Size(max = 10) @RequestParam("prefix") String prefix) {
-        return repository().findByAuthorStartingWith(prefix);
+        return repository.getObject().findByAuthorStartingWith(prefix);
     }
 
     @PostMapping
     public BookServerModel add(@RequestBody @Validated BookServerModel book) throws DuplicateServerException {
-        return repository().save(book);
+        return repository.getObject().save(book);
     }
 
     @PutMapping
     public BookServerModel update(@RequestBody @Validated({ Update.class, Default.class }) BookServerModel book)
             throws NotFoundServerException {
-        return repository().save(book);
+        return repository.getObject().save(book);
     }
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable int id) throws NotFoundServerException {
-        repository().remove(id);
+        repository.getObject().remove(id);
     }
 
     @PostMapping("/upload")
@@ -103,7 +103,13 @@ public class BookController {
         return ResponseEntity.ok().headers(headers).body(resource);
     }
 
-    private BookRepository repository() {
-        return provider.getObject();
+    @GetMapping("/localdate/{localdate}")
+    public String pathParamLocalDate(@PathVariable String localdate) {
+        return localdate;
+    }
+
+    @GetMapping("/localdate")
+    public String queryParamLocalDate(@RequestParam("localdate") String localdate) {
+        return localdate;
     }
 }

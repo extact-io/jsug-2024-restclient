@@ -26,4 +26,8 @@ public interface BookClient {
     String upload(String resourceName);
 
     Resource download(String filename);
+
+    String pathParamLocalDate(LocalDate localDate);
+
+    String queryParamLocalDate(LocalDate localDate);
 }

@@ -1,4 +1,4 @@
-package sample.spring.book.junit;
+package sample.spring.book.util;
 
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -8,7 +8,7 @@ import org.junit.jupiter.api.extension.ExecutionCondition;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 import sample.spring.book.infrastructure.BookClientRestClientAdapterTest;
-import sample.spring.book.junit.EnabledIfClientType.ClientType;
+import sample.spring.book.util.EnabledIfClientType.ClientType;
 
 public class EnabledIfClientTypeCondition implements ExecutionCondition {
 

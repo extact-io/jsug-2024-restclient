@@ -8,11 +8,11 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 
-public class CustomLocalDateSerializer extends JsonSerializer<LocalDate> {
+public class ConfigurableLocalDateSerializer extends JsonSerializer<LocalDate> {
 
     private final DateTimeFormatter formatter;
 
-    public CustomLocalDateSerializer(String pattern) {
+    public ConfigurableLocalDateSerializer(String pattern) {
         this.formatter = DateTimeFormatter.ofPattern(pattern);
     }
 

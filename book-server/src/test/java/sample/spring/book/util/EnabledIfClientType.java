@@ -1,4 +1,4 @@
-package sample.spring.book.junit;
+package sample.spring.book.util;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

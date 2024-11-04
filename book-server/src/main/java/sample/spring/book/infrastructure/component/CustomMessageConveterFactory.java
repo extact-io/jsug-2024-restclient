@@ -15,8 +15,8 @@ public class CustomMessageConveterFactory {
 
         SimpleModule module = new SimpleModule();
 
-        module.addSerializer(LocalDate.class, new CustomLocalDateSerializer(pattern));
-        module.addDeserializer(LocalDate.class, new CustomLocalDateDeserializer(pattern));
+        module.addSerializer(LocalDate.class, new ConfigurableLocalDateSerializer(pattern));
+        module.addDeserializer(LocalDate.class, new ConfigurableLocalDateDeserializer(pattern));
 
         mapper.registerModule(module);
 

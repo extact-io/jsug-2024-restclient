@@ -137,4 +137,14 @@ public class BookClientRestTemplateAdapter implements BookClient {
     public Resource download(String filename) {
         throw new UnsupportedOperationException();
     }
+
+    @Override
+    public String pathParamLocalDate(LocalDate localDate) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String queryParamLocalDate(LocalDate localDate) {
+        throw new UnsupportedOperationException();
+    }
 }

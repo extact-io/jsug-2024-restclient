@@ -9,14 +9,16 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.core5.util.Timeout;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.web.client.ClientHttpRequestFactories;
 import org.springframework.boot.web.client.ClientHttpRequestFactorySettings;
+import org.springframework.core.env.Environment;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.DefaultUriBuilderFactory;
@@ -27,6 +29,7 @@ import sample.spring.book.domain.BookClient;
 import sample.spring.book.domain.BookClientTest;
 import sample.spring.book.infrastructure.component.BookResponseErrorHandler;
 import sample.spring.book.infrastructure.component.CustomMessageConveterFactory;
+import sample.spring.book.infrastructure.component.CustomUriBuilderFactory;
 import sample.spring.book.infrastructure.component.LoggingClientHttpRequestFactory;
 import sample.spring.book.infrastructure.component.PropagateUserContextInitializer;
 import sample.spring.book.stub.BookApplication;
@@ -35,19 +38,20 @@ import sample.spring.book.stub.BookApplication;
 @ActiveProfiles("test")
 public class BookClientRestClientAdapterTest extends BookClientTest {
 
+    @Autowired
+    private Environment env;
+
     @Override
     protected BookClient retrieveTestInstanceBeforeEach(int port) {
 
-        //ClientHttpRequestFactory requestFactory = simpleCreateFactory();
-        //ClientHttpRequestFactory requestFactory = createCustomHttpClientFactory();
-        ClientHttpRequestFactory requestFactory = createLogginFactory();
+        //ClientHttpRequestFactory requestFactory = simpleClientHttpRequestFactory();
+        //ClientHttpRequestFactory requestFactory = customClientHttpRequestFactory();
+        ClientHttpRequestFactory requestFactory = logginClientHttpRequestFactory();
 
-        MappingJackson2HttpMessageConverter converter = new CustomMessageConveterFactory().create("yyyy/MM/dd");
+        HttpMessageConverter<Object> converter = customMessageConveter();
 
-        UriComponentsBuilder uriBuilder = UriComponentsBuilder
-                .fromHttpUrl("http://localhost:" + port)
-                .queryParam("Sender-Name", BookApplication.class.getSimpleName());
-        UriBuilderFactory uriFactory = new DefaultUriBuilderFactory(uriBuilder);
+        //UriBuilderFactory uriFactory = queryParamSettingUriBuilderFactory(port);
+        UriBuilderFactory uriFactory = customUriBuilderFactory();
 
         RestClient restClient = RestClient.builder()
                 .requestFactory(requestFactory)
@@ -64,7 +68,23 @@ public class BookClientRestClientAdapterTest extends BookClientTest {
         return new BookClientRestClientAdapter(restClient);
     }
 
-    private ClientHttpRequestFactory createSimpleFactory() {
+    private UriBuilderFactory queryParamSettingUriBuilderFactory(int port) {
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder
+                .fromHttpUrl("http://localhost:" + port)
+                .queryParam("Sender-Name", BookApplication.class.getSimpleName());
+        return new DefaultUriBuilderFactory(uriBuilder);
+    }
+
+    private UriBuilderFactory customUriBuilderFactory() {
+        String baseUriTemplate = "http://localhost:${local.server.port}";
+        return new CustomUriBuilderFactory(env, baseUriTemplate);
+    }
+
+    private HttpMessageConverter<Object> customMessageConveter() {
+        return new CustomMessageConveterFactory().create("yyyy/MM/dd");
+    }
+
+    private ClientHttpRequestFactory simpleClientHttpRequestFactory() {
 
         Duration connectTimeout = Duration.ofSeconds(5);
         ClientHttpRequestFactorySettings settings = new ClientHttpRequestFactorySettings(
@@ -77,7 +97,7 @@ public class BookClientRestClientAdapterTest extends BookClientTest {
                 settings);
     }
 
-    private ClientHttpRequestFactory createCustomHttpClientFactory() {
+    private ClientHttpRequestFactory customClientHttpRequestFactory() {
 
         ConnectionConfig connectionConfig = ConnectionConfig.custom()
                 .setConnectTimeout(Timeout.ofSeconds(5))   // 接続タイムアウト(default:3sec)
@@ -99,7 +119,7 @@ public class BookClientRestClientAdapterTest extends BookClientTest {
         return new HttpComponentsClientHttpRequestFactory(httpClient);
     }
 
-    private ClientHttpRequestFactory createLogginFactory() {
+    private ClientHttpRequestFactory logginClientHttpRequestFactory() {
         ClientHttpRequestFactory orignal = new HttpComponentsClientHttpRequestFactory();
         return new LoggingClientHttpRequestFactory(orignal);
     }

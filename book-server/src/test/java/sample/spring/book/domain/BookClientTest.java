@@ -1,7 +1,7 @@
 package sample.spring.book.domain;
 
 import static org.assertj.core.api.Assertions.*;
-import static sample.spring.book.junit.EnabledIfClientType.ClientType.*;
+import static sample.spring.book.util.EnabledIfClientType.ClientType.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -24,10 +24,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import sample.spring.book.exception.DuplicateException;
 import sample.spring.book.exception.NotFoundException;
 import sample.spring.book.exception.ValidationException;
-import sample.spring.book.junit.EnabledIfClientType;
 import sample.spring.book.stub.BookApplication;
 import sample.spring.book.stub.BookRepository;
 import sample.spring.book.stub.impl.InMemoryBookRepository;
+import sample.spring.book.util.EnabledIfClientType;
 
 public abstract class BookClientTest {
 
@@ -42,7 +42,7 @@ public abstract class BookClientTest {
     public static class TestConfig {
 
         @Bean
-        @Scope("prototype")
+        @Scope("prototype") // 取得(テスト)の都度作り変えてクリーンにするため
         @Primary
         BookRepository bookRepository() {
             return new InMemoryBookRepository();

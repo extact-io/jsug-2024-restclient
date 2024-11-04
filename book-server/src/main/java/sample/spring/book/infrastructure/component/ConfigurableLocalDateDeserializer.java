@@ -8,11 +8,11 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 
-public class CustomLocalDateDeserializer extends JsonDeserializer<LocalDate> {
+public class ConfigurableLocalDateDeserializer extends JsonDeserializer<LocalDate> {
 
     private final DateTimeFormatter formatter;
 
-    public CustomLocalDateDeserializer(String pattern) {
+    public ConfigurableLocalDateDeserializer(String pattern) {
         this.formatter = DateTimeFormatter.ofPattern(pattern);
     }
 

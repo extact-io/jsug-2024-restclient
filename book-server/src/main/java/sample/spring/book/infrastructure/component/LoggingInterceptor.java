@@ -30,6 +30,8 @@ public class LoggingInterceptor implements ClientHttpRequestInterceptor {
         return response;
     }
 
+    // ボディの内容はこのメソッド呼び出し時点ですべてバイト配列(文字列)化されてしまう
+    // 大きなボディはメモリが圧迫されるので注意が必要！
     private void logRequestDetails(HttpRequest request, byte[] body) {
 
         log.info("Request ================================================================");
@@ -37,7 +39,7 @@ public class LoggingInterceptor implements ClientHttpRequestInterceptor {
         log.info("Request Method: " + request.getMethod());
         log.info("Request Headers: " + request.getHeaders());
 
-        // リクエストボディのログ出力（必要な場合）
+        // リクエストボディのログ出力
         if (request.getHeaders().getContentType().equals(MediaType.MULTIPART_FORM_DATA) && body.length > 0) {
             log.info("Request Body: " + new String(body, StandardCharsets.UTF_8));
         }
