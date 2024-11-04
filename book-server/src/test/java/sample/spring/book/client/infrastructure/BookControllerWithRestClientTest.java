@@ -1,4 +1,4 @@
-package sample.spring.book.client;
+package sample.spring.book.client.infrastructure;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -16,24 +16,22 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.MediaType;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import org.springframework.web.util.UriBuilderFactory;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import sample.spring.book.client.domain.Book;
-import sample.spring.book.client.infrastructure.BookClientRestClientAdapter;
-import sample.spring.book.client.infrastructure.PropagateUserContextInitializer;
+import sample.spring.book.client.domain.BookClient;
+import sample.spring.book.client.infrastructure.exception.BookResponseErrorHandler;
+import sample.spring.book.client.infrastructure.exception.DuplicateClientException;
+import sample.spring.book.client.infrastructure.exception.NotFoundClientException;
+import sample.spring.book.client.infrastructure.exception.ValidationClientException;
 import sample.spring.book.stub.BookApplication;
 import sample.spring.book.stub.BookRepository;
 import sample.spring.book.stub.impl.InMemoryBookRepository;
@@ -42,7 +40,7 @@ import sample.spring.book.stub.impl.InMemoryBookRepository;
 @ActiveProfiles("test")
 class BookControllerWithRestClientTest {
 
-    private BookClientRestClientAdapter client;
+    private BookClient client;
 
     private final Book expectedBook1 = new Book(1, "燃えよ剣", "司馬遼太郎");
     private final Book expectedBook2 = new Book(2, "峠", "司馬遼太郎");
@@ -75,6 +73,7 @@ class BookControllerWithRestClientTest {
                 .uriBuilderFactory(factory)
                 .defaultHeader("Sender-Name", BookApplication.class.getSimpleName())
                 .defaultUriVariables(Map.of("context", "books"))
+                .defaultStatusHandler(new BookResponseErrorHandler())
                 .requestInitializer(new PropagateUserContextInitializer())
                 .build();
 
@@ -136,20 +135,10 @@ class BookControllerWithRestClientTest {
     @Test
     void testFindByAuthorStartingWith() {
 
-        List<Book> actual = client
-                .get()
-                .uri("/books/author", builder -> builder.queryParam("prefix", "司馬").build())
-                .retrieve()
-                .body(new ParameterizedTypeReference<>(){});
-
+        List<Book> actual = client.findByAuthorStartingWith("司馬");
         assertThat(actual).containsExactly(expectedBook1, expectedBook2);
 
-        actual = client
-                .get()
-                .uri("/books/author", builder -> builder.queryParam("prefix", "unknown").build())
-                .retrieve()
-                .body(new ParameterizedTypeReference<>(){});
-
+        actual = client.findByAuthorStartingWith("unknown");
         assertThat(actual).isEmpty();
     }
 
@@ -158,14 +147,7 @@ class BookControllerWithRestClientTest {
 
         prepareSecurityContext();
 
-        Book addBook = new Book(null, "新宿鮫", "大沢在昌");
-
-        Book actual = client
-                .post()
-                .uri("/books")
-                .body(addBook)
-                .retrieve()
-                .body(Book.class);
+        Book actual = client.add("新宿鮫", "大沢在昌");
 
         assertThat(actual.getId()).isEqualTo(4);
     }
@@ -179,12 +161,7 @@ class BookControllerWithRestClientTest {
         updateBook.setTitle("update-title");
         updateBook.setAuthor("update-author");
 
-        Book actual = client
-                .put()
-                .uri("/books")
-                .body(updateBook)
-                .retrieve()
-                .body(Book.class);
+        Book actual = client.update(updateBook);
 
         assertThat(actual.getId()).isEqualTo(1);
         assertThat(actual.getTitle()).isEqualTo("update-title");
@@ -196,10 +173,7 @@ class BookControllerWithRestClientTest {
 
         prepareSecurityContext();
 
-        client.delete()
-                .uri("/books/{id}", 1)
-                .retrieve()
-                .toBodilessEntity();
+        client.delete(1);
     }
 
     @Test
@@ -207,16 +181,7 @@ class BookControllerWithRestClientTest {
 
         prepareSecurityContext();
 
-        MultiValueMap<String, Object> parts = new LinkedMultiValueMap<>();
-        parts.add("file", new ClassPathResource("mz-tech-logo-small.png"));
-
-        String actual = client
-                .post()
-                .uri("/books/upload")
-                .contentType(MediaType.MULTIPART_FORM_DATA)
-                .body(parts)
-                .retrieve()
-                .body(String.class);
+        String actual = client.upload("mz-tech-logo-small.png");
 
         assertThat(actual).isEqualTo("mz-tech-logo-small.png");
     }
@@ -226,17 +191,76 @@ class BookControllerWithRestClientTest {
 
         prepareSecurityContext();
 
-        Resource actual = client
-                .get()
-                .uri("/books/files/{filename}", "mz-tech-logo-small.png")
-                .retrieve()
-                .body(Resource.class);
+        Resource actual = client.download("mz-tech-logo-small.png");
 
         assertThat(actual).isNotNull();
     }
+
+
+    // ----------------------------------------------------- Exception Testing
+
+    @Test
+    void testAddOccurValidationError() {
+
+        prepareSecurityContext();
+
+        assertThatThrownBy(() -> client.add(null, null))
+                .isInstanceOf(ValidationClientException.class);
+    }
+
+    @Test
+    void testUpdateOccurValidationError() {
+
+        prepareSecurityContext();
+
+        assertThatThrownBy(() -> client.update(new Book(999, null, null)))
+                .isInstanceOf(ValidationClientException.class);
+    }
+
+    @Test
+    void testAddOccurDuplicateException() {
+
+        prepareSecurityContext();
+
+        assertThatThrownBy(() -> client.add("峠", "司馬遼太郎"))
+                .isInstanceOf(DuplicateClientException.class);
+    }
+
+    @Test
+    void testUpdateOccurNotFoundException() {
+
+        prepareSecurityContext();
+
+        Book updateBook = new Book(999, "新宿鮫", "大沢在昌");
+        assertThatThrownBy(() -> client.update(updateBook))
+                .isInstanceOf(NotFoundClientException.class);
+    }
+
+    @Test
+    void testDeleteOccurNotFoundException() {
+
+        prepareSecurityContext();
+
+        assertThatThrownBy(() -> client.delete(999))
+                .isInstanceOf(NotFoundClientException.class);
+    }
+
+    @Test
+    void testUpdateOccurConstrainException() {
+
+        prepareSecurityContext();
+
+        assertThatThrownBy(() -> client.update(new Book(3, "燃えよ剣", null)))
+                .isInstanceOf(DuplicateClientException.class);
+    }
+
+
+    // ----------------------------------------------------- private methods
 
     private void prepareSecurityContext() {
         Authentication auth = new TestingAuthenticationToken("ID0001", "test", "MEMBER");
         SecurityContextHolder.getContext().setAuthentication(auth);
     }
+
+
 }

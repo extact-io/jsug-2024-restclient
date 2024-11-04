@@ -1,4 +1,4 @@
-package sample.spring.book.client.domain;
+package sample.spring.book.stub;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -9,9 +9,9 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class Book {
+public class BookServerModel {
 
-    @NotNull
+    @NotNull(groups = Update.class)
     private Integer id;
     @NotBlank
     @Size(min = 1, max = 20)
@@ -19,7 +19,7 @@ public class Book {
     @Size(max = 20)
     private String author;
 
-    public boolean hasSameTitle(Book other) {
+    public boolean hasSameTitle(BookServerModel other) {
         if (other == null) {
             return false;
         }
@@ -29,7 +29,10 @@ public class Book {
         return this.title.equals(other.getTitle());
     }
 
-    public Book copy() {
-        return new Book(id, title, author);
+    public BookServerModel copy() {
+        return new BookServerModel(id, title, author);
+    }
+
+    public interface Update {
     }
 }

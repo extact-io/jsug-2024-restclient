@@ -10,31 +10,31 @@ import jakarta.annotation.PostConstruct;
 
 import org.springframework.stereotype.Repository;
 
-import sample.spring.book.client.domain.Book;
 import sample.spring.book.stub.BookRepository;
+import sample.spring.book.stub.BookServerModel;
 import sample.spring.book.stub.exception.DuplicateException;
 import sample.spring.book.stub.exception.NotFoundException;
 
 @Repository
 public class InMemoryBookRepository implements BookRepository {
 
-    private Map<Integer, Book> bookMap;
+    private Map<Integer, BookServerModel> bookMap;
 
     @PostConstruct
     public void init() {
         bookMap = new ConcurrentHashMap<>();
-        bookMap.put(1, new Book(1, "燃えよ剣", "司馬遼太郎"));
-        bookMap.put(2, new Book(2, "峠", "司馬遼太郎"));
-        bookMap.put(3, new Book(3, "ノルウェーの森", "村上春樹"));
+        bookMap.put(1, new BookServerModel(1, "燃えよ剣", "司馬遼太郎"));
+        bookMap.put(2, new BookServerModel(2, "峠", "司馬遼太郎"));
+        bookMap.put(3, new BookServerModel(3, "ノルウェーの森", "村上春樹"));
     }
 
     @Override
-    public Optional<Book> get(int id) {
+    public Optional<BookServerModel> get(int id) {
         return Optional.ofNullable(bookMap.get(id));
     }
 
     @Override
-    public List<Book> findAll() {
+    public List<BookServerModel> findAll() {
         return bookMap.values().stream()
                 .sorted((book1, book2) -> Integer.compare(book1.getId(), book2.getId()))
                 .toList();
@@ -42,7 +42,7 @@ public class InMemoryBookRepository implements BookRepository {
 
     // @formatter:off
     @Override
-    public List<Book> findByCondition(Map<String, String> condition) {
+    public List<BookServerModel> findByCondition(Map<String, String> condition) {
         return bookMap.values().stream()
                 .filter(book ->
                     condition.entrySet().stream().allMatch(entry ->
@@ -57,7 +57,7 @@ public class InMemoryBookRepository implements BookRepository {
     // @formatter:on
 
     @Override
-    public List<Book> findByAuthorStartingWith(String prefix) {
+    public List<BookServerModel> findByAuthorStartingWith(String prefix) {
         return bookMap.values().stream()
                 .filter(book -> book.getAuthor().startsWith(prefix))
                 .sorted((book1, book2) -> Integer.compare(book1.getId(), book2.getId()))
@@ -65,9 +65,9 @@ public class InMemoryBookRepository implements BookRepository {
     }
 
     @Override
-    public Book save(Book book) throws DuplicateException, NotFoundException {
+    public BookServerModel save(BookServerModel book) throws DuplicateException, NotFoundException {
 
-        book = (Book) book.copy();
+        book = book.copy();
         if (book.getId() != null) { // for update
             if (!bookMap.containsKey(book.getId())) {
                 throw new NotFoundException("id:" + book.getId());
@@ -97,7 +97,7 @@ public class InMemoryBookRepository implements BookRepository {
         bookMap.remove(id);
     }
 
-    private Optional<Book> findByTitle(String title) {
+    private Optional<BookServerModel> findByTitle(String title) {
         return bookMap.values().stream()
                 .filter(book -> book.getTitle().equals(title))
                 .findFirst();

@@ -6,6 +6,7 @@ import java.util.Map;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.groups.Default;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.io.ClassPathResource;
@@ -27,8 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import lombok.RequiredArgsConstructor;
-import sample.spring.book.client.domain.Book;
-import sample.spring.book.client.domain.Book.Update;
+import sample.spring.book.stub.BookServerModel.Update;
 import sample.spring.book.stub.exception.DuplicateException;
 import sample.spring.book.stub.exception.ExceptionHandled;
 import sample.spring.book.stub.exception.NotFoundException;
@@ -42,32 +42,34 @@ public class BookController {
     private final ObjectProvider<BookRepository> provider;
 
     @GetMapping("/{id}")
-    public Book get(@PathVariable int id) {
+    public BookServerModel get(@PathVariable int id) {
         return repository().get(id).orElse(null);
     }
 
     @GetMapping
-    public List<Book> getAll() {
+    public List<BookServerModel> getAll() {
         return repository().findAll();
     }
 
     @GetMapping("/search")
-    public List<Book> findByCondition(@RequestParam Map<String, String> queryParams) {
+    public List<BookServerModel> findByCondition(@RequestParam Map<String, String> queryParams) {
         return repository().findByCondition(queryParams);
     }
 
     @GetMapping("/author")
-    public List<Book> findByAuthorStartingWith(@NotBlank @Size(max= 10) @RequestParam("prefix") String prefix) {
+    public List<BookServerModel> findByAuthorStartingWith(
+            @NotBlank @Size(max = 10) @RequestParam("prefix") String prefix) {
         return repository().findByAuthorStartingWith(prefix);
     }
 
     @PostMapping
-    public Book add(@RequestBody @Validated Book book) throws DuplicateException {
+    public BookServerModel add(@RequestBody @Validated BookServerModel book) throws DuplicateException {
         return repository().save(book);
     }
 
     @PutMapping
-    public Book update(@RequestBody @Validated(Update.class) Book book) throws NotFoundException {
+    public BookServerModel update(@RequestBody @Validated({ Update.class, Default.class }) BookServerModel book)
+            throws NotFoundException {
         return repository().save(book);
     }
 

@@ -4,21 +4,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import sample.spring.book.client.domain.Book;
 import sample.spring.book.stub.exception.DuplicateException;
 import sample.spring.book.stub.exception.NotFoundException;
 
 public interface BookRepository {
 
-    Optional<Book> get(int id);
+    Optional<BookServerModel> get(int id);
 
-    List<Book> findAll();
+    List<BookServerModel> findAll();
 
-    List<Book> findByCondition(Map<String, String> condition);
+    List<BookServerModel> findByCondition(Map<String, String> condition);
 
-    List<Book> findByAuthorStartingWith(String prefix);
+    List<BookServerModel> findByAuthorStartingWith(String prefix);
 
-    Book save(Book entty) throws DuplicateException, NotFoundException;
+    BookServerModel save(BookServerModel entty) throws DuplicateException, NotFoundException;
 
     void remove(int id) throws NotFoundException;
 
