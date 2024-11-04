@@ -6,7 +6,7 @@ import org.springframework.web.util.UriBuilder;
 
 public class CustomUriBuilderFactory extends DefaultUriBuilderFactory {
 
-    private static final String DEFAULT_LOCAL_DATE_PATTERN = "yyyy/MM/dd";
+    private static final String DEFAULT_LOCAL_DATE_PATTERN = "yyyy-MM-dd";
 
     private final Environment env;
     private final String uriTemplate;
