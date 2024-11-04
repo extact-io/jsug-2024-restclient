@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriBuilderFactory;
@@ -25,6 +26,11 @@ public class BookClientRestTemplateAdapterTest extends BookClientTest {
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.setUriTemplateHandler(uriFactory);
         restTemplate.setClientHttpRequestInitializers(List.of(new PropagateUserContextInitializer()));
+
+        List<HttpMessageConverter<?>> messageConverters = restTemplate.getMessageConverters();
+        messageConverters.addFirst(TestUtils.customJsonMessageConveter());
+
+        restTemplate.setMessageConverters(messageConverters);
 
         return new BookClientRestTemplateAdapter(restTemplate);
     }

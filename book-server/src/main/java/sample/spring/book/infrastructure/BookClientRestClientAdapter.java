@@ -1,5 +1,6 @@
 package sample.spring.book.infrastructure;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -85,21 +86,27 @@ public class BookClientRestClientAdapter implements BookClient {
     }
 
     @Override
-    public Book add(String title, String author) throws DuplicateException {
+    public Book add(String title, String author, LocalDate published) throws DuplicateException {
+
+        AddRequest request = new AddRequest(title, author, published);
+
         BookResponse bookResponse = client
                 .post()
                 .uri("/books")
-                .body(new AddRequest(title, author))
+                .body(request)
                 .retrieve()
                 .body(BookResponse.class);
         return bookResponse.toModel();
     }
 
     public Book update(Book updateBook) throws NotFoundException {
+
+        UpdateRequest request = UpdateRequest.from(updateBook);
+
         BookResponse bookResponse = client
                 .put()
                 .uri("/books")
-                .body(updateBook)
+                .body(request)
                 .retrieve()
                 .body(BookResponse.class);
         return bookResponse.toModel();

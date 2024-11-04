@@ -1,6 +1,7 @@
 package sample.spring.book.infrastructure;
 
 import java.net.URI;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -101,8 +102,8 @@ public class BookClientRestTemplateAdapter implements BookClient {
     }
 
     @Override
-    public Book add(String title, String author) throws DuplicateException {
-        AddRequest request = new AddRequest(title, author);
+    public Book add(String title, String author, LocalDate published) throws DuplicateException {
+        AddRequest request = new AddRequest(title, author, published);
         BookResponse bookResponse = restTemplate.postForObject("/books", request, BookResponse.class);
         return bookResponse.toModel();
     }

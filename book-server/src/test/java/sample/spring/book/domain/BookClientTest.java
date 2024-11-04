@@ -3,6 +3,7 @@ package sample.spring.book.domain;
 import static org.assertj.core.api.Assertions.*;
 import static sample.spring.book.junit.EnabledIfClientType.ClientType.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -32,9 +33,9 @@ public abstract class BookClientTest {
 
     private BookClient client;
 
-    private final Book expectedBook1 = new Book(1, "燃えよ剣", "司馬遼太郎");
-    private final Book expectedBook2 = new Book(2, "峠", "司馬遼太郎");
-    private final Book expectedBook3 = new Book(3, "ノルウェーの森", "村上春樹");
+    private final Book expectedBook1 = new Book(1, "燃えよ剣", "司馬遼太郎", LocalDate.of(1972, 6, 1));
+    private final Book expectedBook2 = new Book(2, "峠", "司馬遼太郎", LocalDate.of(1968, 10, 1));
+    private final Book expectedBook3 = new Book(3, "ノルウェイの森", "村上春樹", LocalDate.of(1987, 9, 4));
 
     @Configuration(proxyBeanMethods = false)
     @Import(BookApplication.class)
@@ -130,7 +131,7 @@ public abstract class BookClientTest {
 
         prepareSecurityContext();
 
-        Book actual = client.add("新宿鮫", "大沢在昌");
+        Book actual = client.add("新宿鮫", "大沢在昌", LocalDate.of(1990, 1, 1));
 
         assertThat(actual.getId()).isEqualTo(4);
     }
@@ -192,7 +193,7 @@ public abstract class BookClientTest {
 
         prepareSecurityContext();
 
-        assertThatThrownBy(() -> client.add(null, null))
+        assertThatThrownBy(() -> client.add(null, null, null))
                 .isInstanceOf(ValidationException.class);
     }
 
@@ -202,7 +203,7 @@ public abstract class BookClientTest {
 
         prepareSecurityContext();
 
-        assertThatThrownBy(() -> client.update(new Book(999, null, null)))
+        assertThatThrownBy(() -> client.update(new Book(999, null, null, null)))
                 .isInstanceOf(ValidationException.class);
     }
 
@@ -212,7 +213,7 @@ public abstract class BookClientTest {
 
         prepareSecurityContext();
 
-        assertThatThrownBy(() -> client.add("峠", "司馬遼太郎"))
+        assertThatThrownBy(() -> client.add("峠", "司馬遼太郎", null))
                 .isInstanceOf(DuplicateException.class);
     }
 
@@ -222,7 +223,7 @@ public abstract class BookClientTest {
 
         prepareSecurityContext();
 
-        Book updateBook = new Book(999, "新宿鮫", "大沢在昌");
+        Book updateBook = new Book(999, "新宿鮫", "大沢在昌", LocalDate.of(1990, 1, 1));
         assertThatThrownBy(() -> client.update(updateBook))
                 .isInstanceOf(NotFoundException.class);
     }
@@ -243,7 +244,7 @@ public abstract class BookClientTest {
 
         prepareSecurityContext();
 
-        assertThatThrownBy(() -> client.update(new Book(3, "燃えよ剣", null)))
+        assertThatThrownBy(() -> client.update(new Book(3, "燃えよ剣", null, null)))
                 .isInstanceOf(DuplicateException.class);
     }
 

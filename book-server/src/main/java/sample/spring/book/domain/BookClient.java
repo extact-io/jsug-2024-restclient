@@ -1,5 +1,6 @@
 package sample.spring.book.domain;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -16,7 +17,7 @@ public interface BookClient {
 
     List<Book> findByAuthorStartingWith(String prefix);
 
-    Book add(String title, String author);
+    Book add(String title, String author, LocalDate published);
 
     Book update(Book book);
 

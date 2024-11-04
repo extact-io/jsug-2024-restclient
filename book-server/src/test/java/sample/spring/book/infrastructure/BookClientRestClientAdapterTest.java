@@ -1,7 +1,6 @@
 package sample.spring.book.infrastructure;
 
 import java.time.Duration;
-import java.time.LocalDate;
 import java.util.Map;
 
 import org.apache.hc.client5.http.config.ConnectionConfig;
@@ -24,14 +23,10 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 import org.springframework.web.util.UriBuilderFactory;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-
 import sample.spring.book.domain.BookClient;
 import sample.spring.book.domain.BookClientTest;
 import sample.spring.book.infrastructure.component.BookResponseErrorHandler;
-import sample.spring.book.infrastructure.component.CustomLocalDateDeserializer;
-import sample.spring.book.infrastructure.component.CustomLocalDateSerializer;
+import sample.spring.book.infrastructure.component.LoggingInterceptor;
 import sample.spring.book.infrastructure.component.PropagateUserContextInitializer;
 import sample.spring.book.stub.BookApplication;
 
@@ -45,7 +40,7 @@ public class BookClientRestClientAdapterTest extends BookClientTest {
         //ClientHttpRequestFactory requestFactory = simpleCreateFactory();
         ClientHttpRequestFactory requestFactory = customHttpClientCreateFactory();
 
-        MappingJackson2HttpMessageConverter converter = customJsonMessageConveter();
+        MappingJackson2HttpMessageConverter converter = TestUtils.customJsonMessageConveter();
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder
                 .fromHttpUrl("http://localhost:" + port)
@@ -56,11 +51,12 @@ public class BookClientRestClientAdapterTest extends BookClientTest {
                 .requestFactory(requestFactory)
                 //.baseUrl("http://localhost:" + port)
                 .uriBuilderFactory(uriFactory)
-                .messageConverters(converters -> converters.add(0, converter))
+                .messageConverters(converters -> converters.addFirst(converter))
                 .defaultHeader("Sender-Name", BookClientRestClientAdapter.class.getSimpleName())
                 .defaultUriVariables(Map.of("context", "books"))
                 .defaultStatusHandler(new BookResponseErrorHandler())
                 .requestInitializer(new PropagateUserContextInitializer())
+                .requestInterceptor(new LoggingInterceptor())
                 .build();
 
         return new BookClientRestClientAdapter(restClient);
@@ -99,18 +95,5 @@ public class BookClientRestClientAdapterTest extends BookClientTest {
                 .build();
 
         return new HttpComponentsClientHttpRequestFactory(httpClient);
-    }
-
-    private MappingJackson2HttpMessageConverter customJsonMessageConveter() {
-
-        String localDatePattern = "yyyy/MM/dd";
-
-        ObjectMapper mapper = new ObjectMapper();
-        SimpleModule module = new SimpleModule();
-        module.addSerializer(LocalDate.class, new CustomLocalDateSerializer(localDatePattern));
-        module.addDeserializer(LocalDate.class, new CustomLocalDateDeserializer(localDatePattern));
-        mapper.registerModule(module);
-
-        return new MappingJackson2HttpMessageConverter(mapper);
     }
 }

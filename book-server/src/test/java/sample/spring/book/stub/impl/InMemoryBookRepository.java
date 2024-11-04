@@ -23,9 +23,9 @@ public class InMemoryBookRepository implements BookRepository {
     @PostConstruct
     public void init() {
         bookMap = new ConcurrentHashMap<>();
-        bookMap.put(1, new BookServerModel(1, "燃えよ剣", "司馬遼太郎"));
-        bookMap.put(2, new BookServerModel(2, "峠", "司馬遼太郎"));
-        bookMap.put(3, new BookServerModel(3, "ノルウェーの森", "村上春樹"));
+        bookMap.put(1, new BookServerModel(1, "燃えよ剣", "司馬遼太郎", "1972/06/01"));
+        bookMap.put(2, new BookServerModel(2, "峠", "司馬遼太郎", "1968/10/01"));
+        bookMap.put(3, new BookServerModel(3, "ノルウェイの森", "村上春樹", "1987/09/04"));
     }
 
     @Override

@@ -1,7 +1,10 @@
 package sample.spring.book.domain;
 
+import java.time.LocalDate;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
 
 import lombok.AllArgsConstructor;
@@ -18,6 +21,8 @@ public class Book {
     private String title;
     @Size(max = 20)
     private String author;
+    @PastOrPresent
+    private LocalDate published;
 
     public boolean hasSameTitle(Book other) {
         if (other == null) {
@@ -30,6 +35,6 @@ public class Book {
     }
 
     public Book copy() {
-        return new Book(id, title, author);
+        return new Book(id, title, author, published);
     }
 }

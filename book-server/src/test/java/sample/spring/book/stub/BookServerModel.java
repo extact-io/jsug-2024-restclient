@@ -18,6 +18,7 @@ public class BookServerModel {
     private String title;
     @Size(max = 20)
     private String author;
+    private String published;
 
     public boolean hasSameTitle(BookServerModel other) {
         if (other == null) {
@@ -30,7 +31,7 @@ public class BookServerModel {
     }
 
     public BookServerModel copy() {
-        return new BookServerModel(id, title, author);
+        return new BookServerModel(id, title, author, published);
     }
 
     public interface Update {
