@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import jakarta.validation.Valid;
+
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpEntity;
@@ -145,6 +147,11 @@ public class BookClientRestTemplateAdapter implements BookClient {
 
     @Override
     public String queryParamLocalDate(LocalDate localDate) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public @Valid Book badReturnModel() {
         throw new UnsupportedOperationException();
     }
 }

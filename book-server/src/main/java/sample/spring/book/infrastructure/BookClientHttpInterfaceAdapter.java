@@ -32,24 +32,21 @@ public class BookClientHttpInterfaceAdapter implements BookClient {
 
     @Override
     public List<Book> getAll() {
-        List<BookResponse> bookResponses= client.getAll();
-        return bookResponses.stream()
+        return client.getAll().stream()
                 .map(BookResponse::toModel)
                 .toList();
     }
 
     @Override
     public List<Book> findByCondition(Map<String, String> queryParams) {
-        List<BookResponse> bookResponses= client.findByCondition(queryParams);
-        return bookResponses.stream()
+        return client.findByCondition(queryParams).stream()
                 .map(BookResponse::toModel)
                 .toList();
     }
 
     @Override
     public List<Book> findByAuthorStartingWith(String prefix) {
-        List<BookResponse> bookResponses = client.findByAuthorStartingWith(prefix);
-        return bookResponses.stream()
+        return client.findByAuthorStartingWith(prefix).stream()
                 .map(BookResponse::toModel)
                 .toList();
     }
@@ -57,15 +54,13 @@ public class BookClientHttpInterfaceAdapter implements BookClient {
     @Override
     public Book add(String title, String author, LocalDate published) throws DuplicateException {
         AddRequest request = new AddRequest(title, author, published);
-        BookResponse bookResponse = client.add(request);
-        return bookResponse.toModel();
+        return client.add(request).toModel();
     }
 
     @Override
     public Book update(Book updateBook) throws NotFoundException {
         UpdateRequest request = UpdateRequest.from(updateBook);
-        BookResponse bookResponse = client.update(request);
-        return bookResponse.toModel();
+        return client.update(request).toModel();
     }
 
     @Override
@@ -98,5 +93,10 @@ public class BookClientHttpInterfaceAdapter implements BookClient {
     @Override
     public String queryParamLocalDate(LocalDate localDate) {
         return client.queryParamLocalDate(localDate);
+    }
+
+    @Override
+    public Book badReturnModel() {
+        return client.badResponse().toModel();
     }
 }

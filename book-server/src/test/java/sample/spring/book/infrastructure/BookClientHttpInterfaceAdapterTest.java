@@ -33,7 +33,7 @@ import sample.spring.book.infrastructure.component.jackson.CustomMessageConveter
 public class BookClientHttpInterfaceAdapterTest extends BookClientTest {
 
     @Autowired
-    private BookClientApi bookClientApi;
+    private BookClient bookClient;
 
     @Configuration(proxyBeanMethods = false)
     @Import(BookClientTest.TestConfig.class)
@@ -65,6 +65,11 @@ public class BookClientHttpInterfaceAdapterTest extends BookClientTest {
             return factory.createClient(BookClientApi.class);
         }
 
+        @Bean
+        BookClient bookClient(BookClientApi bookClientApi) {
+            return new BookClientHttpInterfaceAdapter(bookClientApi);
+        }
+
         private UriBuilderFactory customUriBuilderFactory(Environment env) {
             String baseUriTemplate = "http://localhost:${local.server.port}";
             return new CustomUriBuilderFactory(env, baseUriTemplate, LOCAL_DATE_PATTERN);
@@ -92,6 +97,6 @@ public class BookClientHttpInterfaceAdapterTest extends BookClientTest {
 
     @Override
     protected BookClient retrieveTestInstanceBeforeEach(int port) {
-        return new BookClientHttpInterfaceAdapter(this.bookClientApi);
+        return this.bookClient;
     }
 }

@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import jakarta.validation.ConstraintViolationException;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
@@ -202,6 +204,13 @@ public abstract class BookClientTest {
 
 
     // ----------------------------------------------------- Exception Testing
+
+    @Test
+    @EnabledIfClientType(HTTPInterface)
+    void testBadReturnModel() {
+        assertThatThrownBy(() -> client.badReturnModel())
+                .isInstanceOf(ConstraintViolationException.class);
+    }
 
     @Test
     @EnabledIfClientType({ RestClient, HTTPInterface })

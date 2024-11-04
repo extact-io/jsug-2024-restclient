@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import jakarta.validation.Valid;
+
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -163,5 +165,10 @@ public class BookClientRestClientAdapter implements BookClient {
                                 .build())
                 .retrieve()
                 .body(String.class);
+    }
+
+    @Override
+    public @Valid Book badReturnModel() {
+        throw new UnsupportedOperationException();
     }
 }

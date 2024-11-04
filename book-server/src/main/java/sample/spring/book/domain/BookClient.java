@@ -5,8 +5,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.springframework.core.io.Resource;
+import jakarta.validation.Valid;
 
+import org.springframework.core.io.Resource;
+import org.springframework.validation.annotation.Validated;
+
+@Validated
 public interface BookClient {
 
     Optional<Book> get(int id);
@@ -30,4 +34,7 @@ public interface BookClient {
     String pathParamLocalDate(LocalDate localDate);
 
     String queryParamLocalDate(LocalDate localDate);
+
+    @Valid
+    Book badReturnModel();
 }

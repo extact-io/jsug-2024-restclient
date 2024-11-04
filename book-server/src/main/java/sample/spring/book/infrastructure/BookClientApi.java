@@ -53,4 +53,7 @@ public interface BookClientApi {
 
     @GetExchange("/localdate")
     String queryParamLocalDate(@RequestParam("localdate") LocalDate localdate);
+
+    @GetExchange("/bad-response")
+    public BookResponse badResponse();
 }

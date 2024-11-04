@@ -112,4 +112,9 @@ public class BookController {
     public String queryParamLocalDate(@RequestParam("localdate") String localdate) {
         return localdate;
     }
+
+    @GetMapping("/bad-response")
+    public BookServerModel badResponse() {
+        return new BookServerModel(999, null, null, null);
+    }
 }
