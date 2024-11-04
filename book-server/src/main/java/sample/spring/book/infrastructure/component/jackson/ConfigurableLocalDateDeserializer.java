@@ -1,4 +1,4 @@
-package sample.spring.book.infrastructure.component;
+package sample.spring.book.infrastructure.component.jackson;
 
 import java.io.IOException;
 import java.time.LocalDate;

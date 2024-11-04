@@ -1,4 +1,4 @@
-package sample.spring.book.util;
+package sample.spring.book.support;
 
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -7,8 +7,10 @@ import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 import org.junit.jupiter.api.extension.ExecutionCondition;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
+import sample.spring.book.infrastructure.BookClientHttpInterfaceAdapterTest;
 import sample.spring.book.infrastructure.BookClientRestClientAdapterTest;
-import sample.spring.book.util.EnabledIfClientType.ClientType;
+import sample.spring.book.infrastructure.BookClientRestTemplateAdapterTest;
+import sample.spring.book.support.EnabledIfClientType.ClientType;
 
 public class EnabledIfClientTypeCondition implements ExecutionCondition {
 
@@ -36,9 +38,9 @@ public class EnabledIfClientTypeCondition implements ExecutionCondition {
     private boolean match(ClientType type, Class<?> executingTestClass) {
         return switch (type) {
             case ClientType.All -> true;
-            case ClientType.RestTemplate -> false;
+            case ClientType.RestTemplate -> executingTestClass == BookClientRestTemplateAdapterTest.class;
             case ClientType.RestClient -> executingTestClass == BookClientRestClientAdapterTest.class;
-            case ClientType.HTTPInterface -> false;
+            case ClientType.HTTPInterface -> executingTestClass == BookClientHttpInterfaceAdapterTest.class;
         };
 
     }

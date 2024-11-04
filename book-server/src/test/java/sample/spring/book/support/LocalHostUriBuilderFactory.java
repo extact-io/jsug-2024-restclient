@@ -1,4 +1,4 @@
-package sample.spring.book.util;
+package sample.spring.book.support;
 
 import org.springframework.core.env.Environment;
 import org.springframework.web.util.DefaultUriBuilderFactory;

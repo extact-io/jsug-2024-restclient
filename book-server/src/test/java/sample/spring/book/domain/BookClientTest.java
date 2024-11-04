@@ -1,7 +1,7 @@
 package sample.spring.book.domain;
 
 import static org.assertj.core.api.Assertions.*;
-import static sample.spring.book.util.EnabledIfClientType.ClientType.*;
+import static sample.spring.book.support.EnabledIfClientType.ClientType.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -27,7 +27,7 @@ import sample.spring.book.exception.ValidationException;
 import sample.spring.book.stub.BookApplication;
 import sample.spring.book.stub.BookRepository;
 import sample.spring.book.stub.impl.InMemoryBookRepository;
-import sample.spring.book.util.EnabledIfClientType;
+import sample.spring.book.support.EnabledIfClientType;
 
 public abstract class BookClientTest {
 

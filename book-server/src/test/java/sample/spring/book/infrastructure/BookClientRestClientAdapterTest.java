@@ -28,10 +28,10 @@ import org.springframework.web.util.UriComponentsBuilder;
 import sample.spring.book.domain.BookClient;
 import sample.spring.book.domain.BookClientTest;
 import sample.spring.book.infrastructure.component.BookResponseErrorHandler;
-import sample.spring.book.infrastructure.component.CustomMessageConveterFactory;
 import sample.spring.book.infrastructure.component.CustomUriBuilderFactory;
 import sample.spring.book.infrastructure.component.LoggingClientHttpRequestFactory;
 import sample.spring.book.infrastructure.component.PropagateUserContextInitializer;
+import sample.spring.book.infrastructure.component.jackson.CustomMessageConveterFactory;
 import sample.spring.book.stub.BookApplication;
 
 @SpringBootTest(classes = BookClientTest.TestConfig.class, webEnvironment = WebEnvironment.RANDOM_PORT)

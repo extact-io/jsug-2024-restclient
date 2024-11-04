@@ -6,7 +6,9 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.core.env.Environment;
+import org.springframework.format.support.DefaultFormattingConversionService;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -19,10 +21,12 @@ import org.springframework.web.util.UriBuilderFactory;
 import sample.spring.book.domain.BookClient;
 import sample.spring.book.domain.BookClientTest;
 import sample.spring.book.infrastructure.component.BookResponseErrorHandler;
-import sample.spring.book.infrastructure.component.CustomMessageConveterFactory;
 import sample.spring.book.infrastructure.component.CustomUriBuilderFactory;
 import sample.spring.book.infrastructure.component.LoggingClientHttpRequestFactory;
 import sample.spring.book.infrastructure.component.PropagateUserContextInitializer;
+import sample.spring.book.infrastructure.component.converter.LocalDateToStringConverter;
+import sample.spring.book.infrastructure.component.converter.StringToLocalDateConverter;
+import sample.spring.book.infrastructure.component.jackson.CustomMessageConveterFactory;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -41,6 +45,7 @@ public class BookClientHttpInterfaceAdapterTest extends BookClientTest {
             ClientHttpRequestFactory requestFactory = logginClientHttpRequestFactory();
             HttpMessageConverter<Object> converter = customMessageConveter();
             UriBuilderFactory uriFactory = customUriBuilderFactory(env);
+            ConversionService conversionService = customConversionService();
 
             RestClient restClient = RestClient.builder()
                     .requestFactory(requestFactory)
@@ -52,7 +57,11 @@ public class BookClientHttpInterfaceAdapterTest extends BookClientTest {
                     .build();
 
             RestClientAdapter adapter = RestClientAdapter.create(restClient);
-            HttpServiceProxyFactory factory = HttpServiceProxyFactory.builderFor(adapter).build();
+            HttpServiceProxyFactory factory = HttpServiceProxyFactory
+                    .builderFor(adapter)
+                    .conversionService(conversionService)
+                    .build();
+
             return factory.createClient(BookClientApi.class);
         }
 
@@ -68,6 +77,16 @@ public class BookClientHttpInterfaceAdapterTest extends BookClientTest {
         private ClientHttpRequestFactory logginClientHttpRequestFactory() {
             ClientHttpRequestFactory orignal = new HttpComponentsClientHttpRequestFactory();
             return new LoggingClientHttpRequestFactory(orignal);
+        }
+
+        private ConversionService customConversionService() {
+
+            DefaultFormattingConversionService conversionService = new DefaultFormattingConversionService();
+
+            conversionService.addConverter(new LocalDateToStringConverter(LOCAL_DATE_PATTERN));
+            conversionService.addConverter(new StringToLocalDateConverter(LOCAL_DATE_PATTERN));
+
+            return conversionService;
         }
     }
 

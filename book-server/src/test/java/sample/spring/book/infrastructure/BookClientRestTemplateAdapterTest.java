@@ -12,8 +12,8 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 
 import sample.spring.book.domain.BookClient;
 import sample.spring.book.domain.BookClientTest;
-import sample.spring.book.infrastructure.component.CustomMessageConveterFactory;
 import sample.spring.book.infrastructure.component.PropagateUserContextInitializer;
+import sample.spring.book.infrastructure.component.jackson.CustomMessageConveterFactory;
 
 @SpringBootTest(classes = BookClientTest.TestConfig.class, webEnvironment = WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")

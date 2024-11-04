@@ -4,7 +4,7 @@ import java.time.LocalDate;
 
 import sample.spring.book.domain.Book;
 
-record BookResponse(
+public record BookResponse(
         int id,
         String title,
         String author,

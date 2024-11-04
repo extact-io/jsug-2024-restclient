@@ -4,7 +4,7 @@ import java.time.LocalDate;
 
 import sample.spring.book.domain.Book;
 
-record UpdateRequest(
+public record UpdateRequest(
         int id,
         String title,
         String author,
