@@ -29,7 +29,7 @@ public class BookClientRestTemplateAdapterTest extends BookClientTest {
         restTemplate.setUriTemplateHandler(uriFactory);
         restTemplate.setClientHttpRequestInitializers(List.of(new PropagateUserContextInitializer()));
 
-        MappingJackson2HttpMessageConverter converter = new CustomMessageConveterFactory().create("yyyy/MM/dd");
+        MappingJackson2HttpMessageConverter converter = new CustomMessageConveterFactory().create(LOCAL_DATE_PATTERN);
         List<HttpMessageConverter<?>> messageConverters = restTemplate.getMessageConverters();
         messageConverters.addFirst(converter);
         restTemplate.setMessageConverters(messageConverters);

@@ -77,11 +77,11 @@ public class BookClientRestClientAdapterTest extends BookClientTest {
 
     private UriBuilderFactory customUriBuilderFactory() {
         String baseUriTemplate = "http://localhost:${local.server.port}";
-        return new CustomUriBuilderFactory(env, baseUriTemplate);
+        return new CustomUriBuilderFactory(env, baseUriTemplate, LOCAL_DATE_PATTERN);
     }
 
     private HttpMessageConverter<Object> customMessageConveter() {
-        return new CustomMessageConveterFactory().create("yyyy/MM/dd");
+        return new CustomMessageConveterFactory().create(LOCAL_DATE_PATTERN);
     }
 
     private ClientHttpRequestFactory simpleClientHttpRequestFactory() {

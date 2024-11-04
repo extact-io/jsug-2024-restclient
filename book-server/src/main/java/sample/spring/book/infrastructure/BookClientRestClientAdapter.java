@@ -44,7 +44,7 @@ public class BookClientRestClientAdapter implements BookClient {
                 .get()
                 .uri("/books")
                 .retrieve()
-                .body(new ParameterizedTypeReference<List<BookResponse>>() {});
+                .body(new ParameterizedTypeReference<List<BookResponse>>(){});
 
         return bookResponses.stream()
                 .map(BookResponse::toModel)
@@ -64,7 +64,7 @@ public class BookClientRestClientAdapter implements BookClient {
                         .queryParams(multiValueMap)
                         .build())
                 .retrieve()
-                .body(new ParameterizedTypeReference<List<BookResponse>>() {});
+                .body(new ParameterizedTypeReference<List<BookResponse>>(){});
 
         return bookResponses.stream()
                 .map(BookResponse::toModel)
@@ -74,11 +74,11 @@ public class BookClientRestClientAdapter implements BookClient {
     @Override
     public List<Book> findByAuthorStartingWith(String prefix) {
 
-        List<BookResponse> bookResponses= client
+        List<BookResponse> bookResponses = client
                 .get()
                 .uri("/books/author", builder -> builder.queryParam("prefix", prefix).build())
                 .retrieve()
-                .body(new ParameterizedTypeReference<>() {});
+                .body(new ParameterizedTypeReference<>(){});
 
         return bookResponses.stream()
                 .map(BookResponse::toModel)
@@ -142,5 +142,26 @@ public class BookClientRestClientAdapter implements BookClient {
                 .uri("/books/files/{filename}", fileName)
                 .retrieve()
                 .body(Resource.class);
+    }
+
+    @Override
+    public String pathParamLocalDate(LocalDate localDate) {
+        return client
+                .get()
+                .uri("/books/localdate/{localdate}", localDate)
+                .retrieve()
+                .body(String.class);
+    }
+
+    @Override
+    public String queryParamLocalDate(LocalDate localDate) {
+        return client
+                .get()
+                .uri("/books/localdate",
+                        builder -> builder
+                                .queryParam("localdate", localDate)
+                                .build())
+                .retrieve()
+                .body(String.class);
     }
 }

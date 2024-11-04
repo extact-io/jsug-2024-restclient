@@ -49,7 +49,8 @@ public class BookResponseErrorHandler implements ResponseErrorHandler {
     private ErrorMessage readBody(ClientHttpResponse response) {
         try {
             byte[] body = FileCopyUtils.copyToByteArray(response.getBody());
-            return mapper.readValue(new String(body, StandardCharsets.UTF_8), ErrorMessage.class);
+            String bodyString = new String(body, StandardCharsets.UTF_8);
+            return mapper.readValue(bodyString, ErrorMessage.class);
         } catch (IOException e) {
             log.warn(e.getMessage(), e);
             return new ErrorMessage(e.getMessage());

@@ -31,6 +31,8 @@ import sample.spring.book.util.EnabledIfClientType;
 
 public abstract class BookClientTest {
 
+    public static final String LOCAL_DATE_PATTERN = "yyyy.MM.dd";
+
     private BookClient client;
 
     private final Book expectedBook1 = new Book(1, "燃えよ剣", "司馬遼太郎", LocalDate.of(1972, 6, 1));
@@ -182,6 +184,20 @@ public abstract class BookClientTest {
         Resource actual = client.download("mz-tech-logo-small.png");
 
         assertThat(actual).isNotNull();
+    }
+
+    @Test
+    @EnabledIfClientType({ RestClient, HTTPInterface })
+    void testPathParamLocalDate() {
+        String actual = client.pathParamLocalDate(LocalDate.of(2024, 10, 1));
+        assertThat(actual).isEqualTo("2024.10.01");
+    }
+
+    @Test
+    @EnabledIfClientType({ RestClient, HTTPInterface })
+    void testQueryParamLocalDate() {
+        String actual = client.queryParamLocalDate(LocalDate.of(2024, 10, 1));
+        assertThat(actual).isEqualTo("2024.10.01");
     }
 
 

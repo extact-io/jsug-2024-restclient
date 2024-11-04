@@ -109,8 +109,12 @@ public class CustomUriBuilder implements UriBuilder {
         return delegate.fragment(fragment);
     }
 
+    // パスパラメータの変換はこのメソッドで行われる
     public URI build(Object... uriVariables) {
-        return delegate.build(uriVariables);
+        Object[] convetedValues = Stream.of(uriVariables)
+                .map(this::convertValue)
+                .toArray();
+        return delegate.build(convetedValues);
     }
 
     public URI build(Map<String, ?> uriVariables) {
