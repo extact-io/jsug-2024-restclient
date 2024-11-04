@@ -1,6 +1,6 @@
-package sample.spring.book.client.infrastructure;
+package sample.spring.book.infrastructure;
 
-import sample.spring.book.client.domain.Book;
+import sample.spring.book.domain.Book;
 
 record BookResponse(
         int id,

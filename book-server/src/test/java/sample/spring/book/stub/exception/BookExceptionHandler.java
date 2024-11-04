@@ -12,13 +12,13 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @RestControllerAdvice(annotations = ExceptionHandled.class)
 public class BookExceptionHandler extends ResponseEntityExceptionHandler {
 
-    @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleNotFoundException(NotFoundException e, WebRequest req) {
+    @ExceptionHandler(NotFoundServerException.class)
+    public ResponseEntity<Map<String, String>> handleNotFoundException(NotFoundServerException e, WebRequest req) {
         return new ResponseEntity<>(Map.of("message", e.getMessage()), HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(DuplicateException.class)
-    public ResponseEntity<Map<String, String>> handleDuplicateKeyException(DuplicateException e, WebRequest req) {
+    @ExceptionHandler(DuplicateServerException.class)
+    public ResponseEntity<Map<String, String>> handleDuplicateKeyException(DuplicateServerException e, WebRequest req) {
         return new ResponseEntity<>(Map.of("message", e.getMessage()), HttpStatus.CONFLICT);
     }
 }

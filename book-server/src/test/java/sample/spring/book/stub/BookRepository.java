@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import sample.spring.book.stub.exception.DuplicateException;
-import sample.spring.book.stub.exception.NotFoundException;
+import sample.spring.book.stub.exception.DuplicateServerException;
+import sample.spring.book.stub.exception.NotFoundServerException;
 
 public interface BookRepository {
 
@@ -17,8 +17,8 @@ public interface BookRepository {
 
     List<BookServerModel> findByAuthorStartingWith(String prefix);
 
-    BookServerModel save(BookServerModel entty) throws DuplicateException, NotFoundException;
+    BookServerModel save(BookServerModel entty) throws DuplicateServerException, NotFoundServerException;
 
-    void remove(int id) throws NotFoundException;
+    void remove(int id) throws NotFoundServerException;
 
 }

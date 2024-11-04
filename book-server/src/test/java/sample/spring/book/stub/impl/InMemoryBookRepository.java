@@ -12,8 +12,8 @@ import org.springframework.stereotype.Repository;
 
 import sample.spring.book.stub.BookRepository;
 import sample.spring.book.stub.BookServerModel;
-import sample.spring.book.stub.exception.DuplicateException;
-import sample.spring.book.stub.exception.NotFoundException;
+import sample.spring.book.stub.exception.DuplicateServerException;
+import sample.spring.book.stub.exception.NotFoundServerException;
 
 @Repository
 public class InMemoryBookRepository implements BookRepository {
@@ -65,21 +65,21 @@ public class InMemoryBookRepository implements BookRepository {
     }
 
     @Override
-    public BookServerModel save(BookServerModel book) throws DuplicateException, NotFoundException {
+    public BookServerModel save(BookServerModel book) throws DuplicateServerException, NotFoundServerException {
 
         book = book.copy();
         if (book.getId() != null) { // for update
             if (!bookMap.containsKey(book.getId())) {
-                throw new NotFoundException("id:" + book.getId());
+                throw new NotFoundServerException("id:" + book.getId());
             }
             if (findByTitle(book.getTitle())
                     .filter(book::hasSameTitle)
                     .isPresent()) {
-                throw new DuplicateException("title:" + book.getTitle());
+                throw new DuplicateServerException("title:" + book.getTitle());
             }
         } else { // for add
             if (findByTitle(book.getTitle()).isPresent()) {
-                throw new DuplicateException("title:" + book.getTitle());
+                throw new DuplicateServerException("title:" + book.getTitle());
             }
             int nextId = bookMap.keySet().stream().max(Integer::compareTo).get() + 1;
             book.setId(nextId);
@@ -90,9 +90,9 @@ public class InMemoryBookRepository implements BookRepository {
     }
 
     @Override
-    public void remove(int id) throws NotFoundException {
+    public void remove(int id) throws NotFoundServerException {
         if (!bookMap.containsKey(id)) {
-            throw new NotFoundException("id:" + id);
+            throw new NotFoundServerException("id:" + id);
         }
         bookMap.remove(id);
     }

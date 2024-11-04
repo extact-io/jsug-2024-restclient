@@ -1,4 +1,4 @@
-package sample.spring.book.client.domain;
+package sample.spring.book.domain;
 
 import java.util.List;
 import java.util.Map;

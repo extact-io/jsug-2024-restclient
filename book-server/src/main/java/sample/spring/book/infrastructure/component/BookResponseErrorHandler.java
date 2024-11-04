@@ -1,4 +1,4 @@
-package sample.spring.book.client.infrastructure.exception;
+package sample.spring.book.infrastructure.component;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -12,6 +12,10 @@ import org.springframework.web.client.ResponseErrorHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
+import sample.spring.book.exception.DuplicateException;
+import sample.spring.book.exception.ErrorMessage;
+import sample.spring.book.exception.NotFoundException;
+import sample.spring.book.exception.ValidationException;
 
 @Slf4j
 public class BookResponseErrorHandler implements ResponseErrorHandler {
@@ -33,9 +37,9 @@ public class BookResponseErrorHandler implements ResponseErrorHandler {
         HttpStatus status = HttpStatus.resolve(response.getStatusCode().value());
 
         switch (status) {
-            case HttpStatus.CONFLICT -> throw new DuplicateClientException(message);
-            case HttpStatus.NOT_FOUND -> throw new NotFoundClientException(message);
-            case HttpStatus.BAD_REQUEST -> throw new ValidationClientException(message);
+            case HttpStatus.CONFLICT -> throw new DuplicateException(message);
+            case HttpStatus.NOT_FOUND -> throw new NotFoundException(message);
+            case HttpStatus.BAD_REQUEST -> throw new ValidationException(message);
             default -> throw new IllegalArgumentException("Unexpected value: " + response.getStatusCode());
         }
     }
@@ -50,9 +54,5 @@ public class BookResponseErrorHandler implements ResponseErrorHandler {
             log.warn(e.getMessage(), e);
             return new ErrorMessage(e.getMessage());
         }
-    }
-
-    static record ErrorMessage(
-            String message) {
     }
 }

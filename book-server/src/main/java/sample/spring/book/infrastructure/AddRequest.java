@@ -1,4 +1,4 @@
-package sample.spring.book.client.infrastructure;
+package sample.spring.book.infrastructure;
 
 record AddRequest(
         String title,

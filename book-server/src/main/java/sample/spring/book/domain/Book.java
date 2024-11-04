@@ -1,4 +1,4 @@
-package sample.spring.book.client.domain;
+package sample.spring.book.domain;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

@@ -1,6 +1,7 @@
-package sample.spring.book.client.infrastructure;
+package sample.spring.book.domain;
 
 import static org.assertj.core.api.Assertions.*;
+import static sample.spring.book.junit.EnabledIfClientType.ClientType.*;
 
 import java.util.List;
 import java.util.Map;
@@ -9,8 +10,6 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -20,25 +19,16 @@ import org.springframework.core.io.Resource;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.web.client.RestClient;
-import org.springframework.web.util.DefaultUriBuilderFactory;
-import org.springframework.web.util.UriBuilderFactory;
-import org.springframework.web.util.UriComponentsBuilder;
 
-import sample.spring.book.client.domain.Book;
-import sample.spring.book.client.domain.BookClient;
-import sample.spring.book.client.infrastructure.exception.BookResponseErrorHandler;
-import sample.spring.book.client.infrastructure.exception.DuplicateClientException;
-import sample.spring.book.client.infrastructure.exception.NotFoundClientException;
-import sample.spring.book.client.infrastructure.exception.ValidationClientException;
+import sample.spring.book.exception.DuplicateException;
+import sample.spring.book.exception.NotFoundException;
+import sample.spring.book.exception.ValidationException;
+import sample.spring.book.junit.EnabledIfClientType;
 import sample.spring.book.stub.BookApplication;
 import sample.spring.book.stub.BookRepository;
 import sample.spring.book.stub.impl.InMemoryBookRepository;
 
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("test")
-class BookControllerWithRestClientTest {
+public abstract class BookClientTest {
 
     private BookClient client;
 
@@ -48,7 +38,7 @@ class BookControllerWithRestClientTest {
 
     @Configuration(proxyBeanMethods = false)
     @Import(BookApplication.class)
-    static class TestConfig {
+    public static class TestConfig {
 
         @Bean
         @Scope("prototype")
@@ -58,29 +48,18 @@ class BookControllerWithRestClientTest {
         }
     }
 
+    protected abstract BookClient retrieveTestInstanceBeforeEach(int port);
+
     @BeforeEach
     void beforeEach(@Value("${local.server.port}") int port) {
 
         SecurityContextHolder.clearContext();
 
-        UriComponentsBuilder builder = UriComponentsBuilder
-                .fromHttpUrl("http://localhost:" + port)
-                .queryParam("Sender-Name", BookApplication.class.getSimpleName());
-        UriBuilderFactory factory = new DefaultUriBuilderFactory(builder);
-
-        RestClient restClient = RestClient.builder()
-                //.baseUrl("http://localhost:" + port)
-                .uriBuilderFactory(factory)
-                .defaultHeader("Sender-Name", BookApplication.class.getSimpleName())
-                .defaultUriVariables(Map.of("context", "books"))
-                .defaultStatusHandler(new BookResponseErrorHandler())
-                .requestInitializer(new PropagateUserContextInitializer())
-                .build();
-
-        this.client = new BookClientRestClientAdapter(restClient);
+        this.client = retrieveTestInstanceBeforeEach(port);
     }
 
     @Test
+    @EnabledIfClientType(All)
     void testGet() {
 
         Optional<Book> actual = client.get(1);
@@ -91,6 +70,7 @@ class BookControllerWithRestClientTest {
     }
 
     @Test
+    @EnabledIfClientType(All)
     void testGetAll() {
 
         List<Book> actual = client.getAll();
@@ -98,6 +78,7 @@ class BookControllerWithRestClientTest {
     }
 
     @Test
+    @EnabledIfClientType(All)
     void testFindByCondition() {
 
         // 全項目一致検索
@@ -133,6 +114,7 @@ class BookControllerWithRestClientTest {
     }
 
     @Test
+    @EnabledIfClientType(All)
     void testFindByAuthorStartingWith() {
 
         List<Book> actual = client.findByAuthorStartingWith("司馬");
@@ -143,6 +125,7 @@ class BookControllerWithRestClientTest {
     }
 
     @Test
+    @EnabledIfClientType(All)
     void testAdd() {
 
         prepareSecurityContext();
@@ -153,6 +136,7 @@ class BookControllerWithRestClientTest {
     }
 
     @Test
+    @EnabledIfClientType(All)
     void testUpdate() {
 
         prepareSecurityContext();
@@ -169,6 +153,7 @@ class BookControllerWithRestClientTest {
     }
 
     @Test
+    @EnabledIfClientType(All)
     void testDelete() {
 
         prepareSecurityContext();
@@ -177,6 +162,7 @@ class BookControllerWithRestClientTest {
     }
 
     @Test
+    @EnabledIfClientType({ RestClient, HTTPInterface })
     void testUpload() {
 
         prepareSecurityContext();
@@ -187,6 +173,7 @@ class BookControllerWithRestClientTest {
     }
 
     @Test
+    @EnabledIfClientType({ RestClient, HTTPInterface })
     void testDownload() {
 
         prepareSecurityContext();
@@ -200,58 +187,64 @@ class BookControllerWithRestClientTest {
     // ----------------------------------------------------- Exception Testing
 
     @Test
+    @EnabledIfClientType({ RestClient, HTTPInterface })
     void testAddOccurValidationError() {
 
         prepareSecurityContext();
 
         assertThatThrownBy(() -> client.add(null, null))
-                .isInstanceOf(ValidationClientException.class);
+                .isInstanceOf(ValidationException.class);
     }
 
     @Test
+    @EnabledIfClientType({ RestClient, HTTPInterface })
     void testUpdateOccurValidationError() {
 
         prepareSecurityContext();
 
         assertThatThrownBy(() -> client.update(new Book(999, null, null)))
-                .isInstanceOf(ValidationClientException.class);
+                .isInstanceOf(ValidationException.class);
     }
 
     @Test
+    @EnabledIfClientType({ RestClient, HTTPInterface })
     void testAddOccurDuplicateException() {
 
         prepareSecurityContext();
 
         assertThatThrownBy(() -> client.add("峠", "司馬遼太郎"))
-                .isInstanceOf(DuplicateClientException.class);
+                .isInstanceOf(DuplicateException.class);
     }
 
     @Test
+    @EnabledIfClientType({ RestClient, HTTPInterface })
     void testUpdateOccurNotFoundException() {
 
         prepareSecurityContext();
 
         Book updateBook = new Book(999, "新宿鮫", "大沢在昌");
         assertThatThrownBy(() -> client.update(updateBook))
-                .isInstanceOf(NotFoundClientException.class);
+                .isInstanceOf(NotFoundException.class);
     }
 
     @Test
+    @EnabledIfClientType({ RestClient, HTTPInterface })
     void testDeleteOccurNotFoundException() {
 
         prepareSecurityContext();
 
         assertThatThrownBy(() -> client.delete(999))
-                .isInstanceOf(NotFoundClientException.class);
+                .isInstanceOf(NotFoundException.class);
     }
 
     @Test
+    @EnabledIfClientType({ RestClient, HTTPInterface })
     void testUpdateOccurConstrainException() {
 
         prepareSecurityContext();
 
         assertThatThrownBy(() -> client.update(new Book(3, "燃えよ剣", null)))
-                .isInstanceOf(DuplicateClientException.class);
+                .isInstanceOf(DuplicateException.class);
     }
 
 

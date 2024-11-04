@@ -29,9 +29,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import lombok.RequiredArgsConstructor;
 import sample.spring.book.stub.BookServerModel.Update;
-import sample.spring.book.stub.exception.DuplicateException;
+import sample.spring.book.stub.exception.DuplicateServerException;
 import sample.spring.book.stub.exception.ExceptionHandled;
-import sample.spring.book.stub.exception.NotFoundException;
+import sample.spring.book.stub.exception.NotFoundServerException;
 
 @RestController
 @ExceptionHandled
@@ -63,18 +63,18 @@ public class BookController {
     }
 
     @PostMapping
-    public BookServerModel add(@RequestBody @Validated BookServerModel book) throws DuplicateException {
+    public BookServerModel add(@RequestBody @Validated BookServerModel book) throws DuplicateServerException {
         return repository().save(book);
     }
 
     @PutMapping
     public BookServerModel update(@RequestBody @Validated({ Update.class, Default.class }) BookServerModel book)
-            throws NotFoundException {
+            throws NotFoundServerException {
         return repository().save(book);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable int id) throws NotFoundException {
+    public void delete(@PathVariable int id) throws NotFoundServerException {
         repository().remove(id);
     }
 

@@ -1,4 +1,4 @@
-package sample.spring.book.client.infrastructure;
+package sample.spring.book.infrastructure;
 
 import java.util.List;
 import java.util.Map;
@@ -13,10 +13,10 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 
 import lombok.RequiredArgsConstructor;
-import sample.spring.book.client.domain.Book;
-import sample.spring.book.client.domain.BookClient;
-import sample.spring.book.client.infrastructure.exception.DuplicateClientException;
-import sample.spring.book.client.infrastructure.exception.NotFoundClientException;
+import sample.spring.book.domain.Book;
+import sample.spring.book.domain.BookClient;
+import sample.spring.book.exception.DuplicateException;
+import sample.spring.book.exception.NotFoundException;
 
 @RequiredArgsConstructor
 public class BookClientRestClientAdapter implements BookClient {
@@ -85,7 +85,7 @@ public class BookClientRestClientAdapter implements BookClient {
     }
 
     @Override
-    public Book add(String title, String author) throws DuplicateClientException {
+    public Book add(String title, String author) throws DuplicateException {
         BookResponse bookResponse = client
                 .post()
                 .uri("/books")
@@ -95,7 +95,7 @@ public class BookClientRestClientAdapter implements BookClient {
         return bookResponse.toModel();
     }
 
-    public Book update(Book updateBook) throws NotFoundClientException {
+    public Book update(Book updateBook) throws NotFoundException {
         BookResponse bookResponse = client
                 .put()
                 .uri("/books")
@@ -106,7 +106,7 @@ public class BookClientRestClientAdapter implements BookClient {
     }
 
     @Override
-    public void delete(int id) throws NotFoundClientException {
+    public void delete(int id) throws NotFoundException {
         client.delete()
                 .uri("/books/{id}", id)
                 .retrieve()
