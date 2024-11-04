@@ -1,7 +1,6 @@
 package sample.spring.book.infrastructure;
 
 import java.time.Duration;
-import java.util.Map;
 
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
@@ -59,7 +58,6 @@ public class BookClientRestClientAdapterTest extends BookClientTest {
                 .uriBuilderFactory(uriFactory)
                 .messageConverters(converters -> converters.addFirst(converter))
                 .defaultHeader("Sender-Name", BookClientRestClientAdapter.class.getSimpleName())
-                .defaultUriVariables(Map.of("context", "books"))
                 .defaultStatusHandler(new BookResponseErrorHandler())
                 .requestInitializer(new PropagateUserContextInitializer())
                 //.requestInterceptor(new LoggingInterceptor())
