@@ -1,9 +1,10 @@
-package sample.spring.book.server;
+package sample.spring.book.client;
 
 import static org.assertj.core.api.Assertions.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,14 +31,18 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 import org.springframework.web.util.UriBuilderFactory;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import sample.spring.book.server.client.UserHeaderRequestInitializer;
-import sample.spring.book.server.repository.InMemoryBookRepository;
+import sample.spring.book.client.domain.Book;
+import sample.spring.book.client.infrastructure.BookClientRestClientAdapter;
+import sample.spring.book.client.infrastructure.PropagateUserContextInitializer;
+import sample.spring.book.stub.BookApplication;
+import sample.spring.book.stub.BookRepository;
+import sample.spring.book.stub.impl.InMemoryBookRepository;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 class BookControllerWithRestClientTest {
 
-    private RestClient client;
+    private BookClientRestClientAdapter client;
 
     private final Book expectedBook1 = new Book(1, "燃えよ剣", "司馬遼太郎");
     private final Book expectedBook2 = new Book(2, "峠", "司馬遼太郎");
@@ -65,44 +70,31 @@ class BookControllerWithRestClientTest {
                 .queryParam("Sender-Name", BookApplication.class.getSimpleName());
         UriBuilderFactory factory = new DefaultUriBuilderFactory(builder);
 
-        this.client = RestClient.builder()
+        RestClient restClient = RestClient.builder()
                 //.baseUrl("http://localhost:" + port)
                 .uriBuilderFactory(factory)
                 .defaultHeader("Sender-Name", BookApplication.class.getSimpleName())
                 .defaultUriVariables(Map.of("context", "books"))
-                .requestInitializer(new UserHeaderRequestInitializer())
+                .requestInitializer(new PropagateUserContextInitializer())
                 .build();
+
+        this.client = new BookClientRestClientAdapter(restClient);
     }
 
     @Test
     void testGet() {
 
-        Book actual = client
-                .get()
-                .uri("/books/{id}", 1)
-                .retrieve()
-                .body(Book.class);
+        Optional<Book> actual = client.get(1);
+        assertThat(actual).isPresent().contains(expectedBook1);
 
-        assertThat(actual).isEqualTo(expectedBook1);
-
-        actual = client
-                .get()
-                .uri("/books/{id}", 999)
-                .retrieve()
-                .body(Book.class);
-
-        assertThat(actual).isNull();
+        actual = client.get(999);
+        assertThat(actual).isEmpty();
     }
 
     @Test
     void testGetAll() {
 
-        List<Book> actual = client
-                .get()
-                .uri("/books")
-                .retrieve()
-                .body(new ParameterizedTypeReference<List<Book>>(){});
-
+        List<Book> actual = client.getAll();
         assertThat(actual).containsExactly(expectedBook1, expectedBook2, expectedBook3);
     }
 
@@ -110,51 +102,34 @@ class BookControllerWithRestClientTest {
     void testFindByCondition() {
 
         // 全項目一致検索
-        List<Book> actual = client
-                .get()
-                .uri("/books/search", builder -> builder
-                        .queryParam("id", "2")
-                        .queryParam("title", "峠")
-                        .queryParam("author", "司馬遼太郎")
-                        .build())
-                .retrieve()
-                .body(new ParameterizedTypeReference<List<Book>>(){});
+        Map<String, String> conditions = Map.of(
+                "id", "2",
+                "title", "峠",
+                "author", "司馬遼太郎");
 
+        List<Book> actual = client.findByCondition(conditions);
         assertThat(actual).containsExactly(expectedBook2);
 
-        // 著者名検索
-        actual = client
-                .get()
-                .uri("/books/search", builder -> builder
-                        .queryParam("author", "司馬遼太郎")
-                        .build())
-                .retrieve()
-                .body(new ParameterizedTypeReference<List<Book>>(){});
 
+        // 著者名検索
+        conditions = Map.of("author", "司馬遼太郎");
+        actual = client.findByCondition(conditions);
         assertThat(actual).containsExactly(expectedBook1, expectedBook2);
 
-        // idと著者名で検索
-        actual = client
-                .get()
-                .uri("/books/search", builder -> builder
-                        .queryParam("id", "1")
-                        .queryParam("author", "司馬遼太郎")
-                        .build())
-                .retrieve()
-                .body(new ParameterizedTypeReference<List<Book>>(){});
 
+        // idと著者名で検索
+        conditions = Map.of(
+                "id", "1",
+                "author", "司馬遼太郎");
+        actual = client.findByCondition(conditions);
         assertThat(actual).containsExactly(expectedBook1);
 
-        // 該当なし（一部項目不一致）
-        actual = client
-                .get()
-                .uri("/books/search", builder -> builder
-                        .queryParam("id", "9")
-                        .queryParam("author", "司馬遼太郎")
-                        .build())
-                .retrieve()
-                .body(new ParameterizedTypeReference<List<Book>>(){});
 
+        // 該当なし（一部項目不一致）
+        conditions = Map.of(
+                "id", "9",
+                "author", "司馬遼太郎");
+        actual = client.findByCondition(conditions);
         assertThat(actual).isEmpty();
     }
 

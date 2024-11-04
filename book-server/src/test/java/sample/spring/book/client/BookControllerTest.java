@@ -1,4 +1,4 @@
-package sample.spring.book.server;
+package sample.spring.book.client;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -33,8 +33,11 @@ import org.springframework.web.service.annotation.PostExchange;
 import org.springframework.web.service.annotation.PutExchange;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 
-import sample.spring.book.server.client.UserHeaderRequestInitializer;
-import sample.spring.book.server.repository.InMemoryBookRepository;
+import sample.spring.book.client.domain.Book;
+import sample.spring.book.client.infrastructure.PropagateUserContextInitializer;
+import sample.spring.book.stub.BookApplication;
+import sample.spring.book.stub.BookRepository;
+import sample.spring.book.stub.impl.InMemoryBookRepository;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -67,7 +70,7 @@ class BookControllerTest {
                 .baseUrl("http://localhost:" + port)
                 .defaultHeader("Sender-Name", BookApplication.class.getSimpleName())
                 .defaultUriVariables(Map.of("context", "books"))
-                .requestInitializer(new UserHeaderRequestInitializer())
+                .requestInitializer(new PropagateUserContextInitializer())
                 .build();
 
         this.client = restClient;

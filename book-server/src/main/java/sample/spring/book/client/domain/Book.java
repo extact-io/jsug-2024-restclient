@@ -1,4 +1,4 @@
-package sample.spring.book.server;
+package sample.spring.book.client.domain;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -11,7 +11,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class Book {
 
-    @NotNull(groups = Update.class)
+    @NotNull
     private Integer id;
     @NotBlank
     @Size(min = 1, max = 20)

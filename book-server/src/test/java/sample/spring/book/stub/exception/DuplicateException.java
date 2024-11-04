@@ -1,4 +1,4 @@
-package sample.spring.book.server.exception;
+package sample.spring.book.stub.exception;
 
 public class DuplicateException extends RuntimeException {
 

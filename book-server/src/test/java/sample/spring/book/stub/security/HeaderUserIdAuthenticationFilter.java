@@ -1,4 +1,4 @@
-package sample.spring.book.server.security;
+package sample.spring.book.stub.security;
 
 import java.io.IOException;
 import java.util.Arrays;

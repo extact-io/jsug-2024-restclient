@@ -1,4 +1,4 @@
-package sample.spring.book.server;
+package sample.spring.book.stub;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -27,13 +27,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import lombok.RequiredArgsConstructor;
-import sample.spring.book.server.Book.Update;
-import sample.spring.book.server.exception.DuplicateException;
-import sample.spring.book.server.exception.HandledException;
-import sample.spring.book.server.exception.NotFoundException;
+import sample.spring.book.client.domain.Book;
+import sample.spring.book.client.domain.Book.Update;
+import sample.spring.book.stub.exception.DuplicateException;
+import sample.spring.book.stub.exception.ExceptionHandled;
+import sample.spring.book.stub.exception.NotFoundException;
 
 @RestController
-@HandledException
+@ExceptionHandled
 @RequestMapping("/books")
 @RequiredArgsConstructor
 public class BookController {

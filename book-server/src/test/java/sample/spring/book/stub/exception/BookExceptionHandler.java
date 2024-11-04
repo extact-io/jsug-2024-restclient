@@ -1,4 +1,4 @@
-package sample.spring.book.server.exception;
+package sample.spring.book.stub.exception;
 
 import java.util.Map;
 
@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-@RestControllerAdvice(annotations = HandledException.class)
+@RestControllerAdvice(annotations = ExceptionHandled.class)
 public class BookExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(NotFoundException.class)

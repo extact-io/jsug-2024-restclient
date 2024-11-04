@@ -1,4 +1,4 @@
-package sample.spring.book.server.security;
+package sample.spring.book.stub.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

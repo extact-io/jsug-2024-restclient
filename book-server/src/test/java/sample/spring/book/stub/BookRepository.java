@@ -1,11 +1,12 @@
-package sample.spring.book.server;
+package sample.spring.book.stub;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import sample.spring.book.server.exception.DuplicateException;
-import sample.spring.book.server.exception.NotFoundException;
+import sample.spring.book.client.domain.Book;
+import sample.spring.book.stub.exception.DuplicateException;
+import sample.spring.book.stub.exception.NotFoundException;
 
 public interface BookRepository {
 

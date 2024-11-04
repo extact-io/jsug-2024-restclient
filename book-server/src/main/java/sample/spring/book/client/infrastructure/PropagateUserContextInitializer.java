@@ -1,4 +1,4 @@
-package sample.spring.book.server.client;
+package sample.spring.book.client.infrastructure;
 
 import java.util.stream.Collectors;
 
@@ -8,7 +8,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-public class UserHeaderRequestInitializer implements ClientHttpRequestInitializer {
+public class PropagateUserContextInitializer implements ClientHttpRequestInitializer {
 
     @Override
     public void initialize(ClientHttpRequest request) {

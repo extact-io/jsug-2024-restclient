@@ -1,4 +1,4 @@
-package sample.spring.book.server.repository;
+package sample.spring.book.stub.impl;
 
 import java.util.List;
 import java.util.Map;
@@ -10,10 +10,10 @@ import jakarta.annotation.PostConstruct;
 
 import org.springframework.stereotype.Repository;
 
-import sample.spring.book.server.Book;
-import sample.spring.book.server.BookRepository;
-import sample.spring.book.server.exception.DuplicateException;
-import sample.spring.book.server.exception.NotFoundException;
+import sample.spring.book.client.domain.Book;
+import sample.spring.book.stub.BookRepository;
+import sample.spring.book.stub.exception.DuplicateException;
+import sample.spring.book.stub.exception.NotFoundException;
 
 @Repository
 public class InMemoryBookRepository implements BookRepository {

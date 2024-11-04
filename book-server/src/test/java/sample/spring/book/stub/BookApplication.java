@@ -1,4 +1,4 @@
-package sample.spring.book.server;
+package sample.spring.book.stub;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
