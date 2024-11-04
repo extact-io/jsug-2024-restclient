@@ -26,8 +26,6 @@ public class CustomUriBuilderFactory extends DefaultUriBuilderFactory {
         this.localDatePattern = localDataPattern;
     }
 
-    // UriBuilderFactory
-
     @Override
     public UriBuilder uriString(String uriTemplate) {
         String baseUriTemplate = resolveTemplate() + uriTemplate;
