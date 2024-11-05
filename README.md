@@ -1,4 +1,4 @@
-# jsug-2024-restclient
+# jsug-2024-restclient 
 > JSUG勉強会2024その2 ～ Spring Frameworkの新標準!? RestClientとHTTPインターフェース入門の登壇スライドで使っているサンプルアプリ一式
 
 - RestClientやHTTPInterfaceを使ったRESTクライアントコードは`/src/main`側にあります

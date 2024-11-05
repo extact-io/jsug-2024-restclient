@@ -40,7 +40,7 @@
 			<version>2.0.4</version>
 			<!--
 				Spring Boot does not require tomcat-coyote, but if it is present,
-				AbstractProtocol.setMaxQueueSize(int) included in tomcat-embed
+				AbstractProtocol.setMaxQueueSize(int) included in tomcat-embed 
 				will not be found, so exclude it.
 			-->
 			<exclusions>

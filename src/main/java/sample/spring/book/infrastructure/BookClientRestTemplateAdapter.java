@@ -22,10 +22,6 @@ import sample.spring.book.domain.BookClient;
 import sample.spring.book.exception.DuplicateException;
 import sample.spring.book.exception.NotFoundException;
 
-// やりたいことは同じでもgetForObject, getForEntity, exchangeと3つもある
-// それぞれ引数を沢山とるのでどこになにを渡せばいいのかわからない。（いつも調べるのめんどくさい）
-// 加えてオーバーロードメソッドが沢山あるので、どれを使えばいいのかさらにわかりずらい
-// 加えてラムダも使えないので記述が冗長になりがち（最近のスタイルと比べて）
 @RequiredArgsConstructor
 public class BookClientRestTemplateAdapter implements BookClient {
 
